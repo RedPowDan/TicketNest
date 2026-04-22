@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <Folder Include="Models\Base\" />
-      <Folder Include="Models\Events\" />
     </ItemGroup>
 
     <ItemGroup>
