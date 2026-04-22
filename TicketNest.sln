@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Application", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Domain", "TicketNest.Domain\TicketNest.Domain.csproj", "{02E1A607-CEA1-4010-91D4-CEBF09169F0D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Shared", "TicketNest.Shared\TicketNest.Shared.csproj", "{287BE28A-8D94-49FE-B9E1-85FA6DA931A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{02E1A607-CEA1-4010-91D4-CEBF09169F0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02E1A607-CEA1-4010-91D4-CEBF09169F0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02E1A607-CEA1-4010-91D4-CEBF09169F0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{287BE28A-8D94-49FE-B9E1-85FA6DA931A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{287BE28A-8D94-49FE-B9E1-85FA6DA931A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{287BE28A-8D94-49FE-B9E1-85FA6DA931A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{287BE28A-8D94-49FE-B9E1-85FA6DA931A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4EDEB330-E38C-4454-82F2-9BF90A44D6EA} = {95844A6F-4733-4B6F-B7C8-515425B47A83}

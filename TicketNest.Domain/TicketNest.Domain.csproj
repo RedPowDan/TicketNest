@@ -6,4 +6,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Models\Base\" />
+      <Folder Include="Models\Events\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
+    </ItemGroup>
+
 </Project>
