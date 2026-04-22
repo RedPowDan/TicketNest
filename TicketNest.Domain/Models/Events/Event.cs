@@ -14,7 +14,7 @@ public class Event
 
     public DateTime EndAt { get; }
 
-    public Event(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    private Event(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
     {
         Ensure.NotNull(id, nameof(id));
         Ensure.NotNull(title, nameof(title));
@@ -26,5 +26,10 @@ public class Event
         Description = description;
         StartAt = startAt;
         EndAt = endAt;
+    }
+
+    public static Event LoadFromStorage(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    {
+        return new Event(id, title, description, startAt, endAt);
     }
 }
