@@ -8,6 +8,8 @@ internal static class EventMapper
 {
     public static Event ToDomain(PersistenceEvent source)
     {
+        Ensure.NotNull(source, nameof(source));
+
         return Event.LoadFromStorage(id: EventId.From(source.Id),
             title: EventTitle.From(source.Title),
             description: source.Description == null ? null : EventDescription.From(source.Description),
@@ -17,6 +19,8 @@ internal static class EventMapper
 
     public static PersistenceEvent ToPersistence(Event source)
     {
+        Ensure.NotNull(source, nameof(source));
+
         return new PersistenceEvent
         {
             Id = source.Id.Value,

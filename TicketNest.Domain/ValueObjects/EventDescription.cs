@@ -1,6 +1,6 @@
 ﻿namespace TicketNest.Domain.ValueObjects;
 
-public class EventDescription
+public record EventDescription  : ValueObject
 {
     public string Value { get; }
 
@@ -12,4 +12,9 @@ public class EventDescription
     }
 
     public static EventDescription From(string value) => new(value);
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return Value;
+    }
 }
