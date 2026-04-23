@@ -1,4 +1,5 @@
 ﻿using TicketNest.Application.Constants;
+using TicketNest.Application.Models;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Repositories;
 using TicketNest.Domain.ValueObjects;
@@ -6,13 +7,13 @@ using TicketNest.Shared.Objects;
 
 namespace TicketNest.Application.Services.Events;
 
-public class EventsService(IEventsRepository eventsRepository)
+internal sealed class EventService(IEventsRepository eventsRepository) : IEventService
 {
     public Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default) => eventsRepository.GetAll(ct);
 
     public async Task<Event?> Get(EventId id, CancellationToken ct = default) => await eventsRepository.Get(id, ct);
 
-    public async Task<Result<Event, string>> Create(
+    public async Task<Result<Event, Error>> Create(
         EventTitle title,
         EventDescription? description,
         DateTime startAt,
@@ -22,7 +23,7 @@ public class EventsService(IEventsRepository eventsRepository)
         var eventCreateResult = Event.Create(title, description, startAt, endAt);
         if (eventCreateResult.IsFailure)
         {
-            return eventCreateResult.Error;
+            return new Error(ErrorStatusCode.BadRequest, eventCreateResult.Error);
         }
 
         await eventsRepository.Save(eventCreateResult.Value, ct);
@@ -30,7 +31,7 @@ public class EventsService(IEventsRepository eventsRepository)
         return eventCreateResult.Value;
     }
 
-    public async Task<UnitResult<ErrorStatusCode>> Change(
+    public async Task<UnitResult<Error>> Change(
         EventId id,
         EventTitle title,
         EventDescription? description,
@@ -41,40 +42,40 @@ public class EventsService(IEventsRepository eventsRepository)
         var eventModel = await eventsRepository.Get(id, ct);
         if (eventModel == null)
         {
-            return ErrorStatusCode.NotFound;
+            return new Error(ErrorStatusCode.NotFound, "Не найдено событие");
         }
 
         var changeTitleResult = eventModel.ChangeTitle(title);
         if (changeTitleResult.IsFailure)
         {
-            return ErrorStatusCode.BadRequest;
+            return new Error(ErrorStatusCode.BadRequest, changeTitleResult.Error);
         }
 
         var changeDescriptionResult = eventModel.ChangeDescription(description);
         if (changeDescriptionResult.IsFailure)
         {
-            return ErrorStatusCode.BadRequest;
+            return new Error(ErrorStatusCode.BadRequest, changeDescriptionResult.Error);
         }
 
         var changeStartAtAndEndAtResult = eventModel.ChangeStartAtAndEndAt(startAt, endAt);
         if (changeStartAtAndEndAtResult.IsFailure)
         {
-            return ErrorStatusCode.BadRequest;
+            return new Error(ErrorStatusCode.BadRequest, changeStartAtAndEndAtResult.Error);
         }
 
         await eventsRepository.Save(eventModel, ct);
 
-        return UnitResult<ErrorStatusCode>.FromSuccess();
+        return UnitResult<Error>.FromSuccess();
     }
 
-    public async Task<UnitResult<ErrorStatusCode>> Delete(EventId id, CancellationToken ct = default)
+    public async Task<UnitResult<Error>> Delete(EventId id, CancellationToken ct = default)
     {
         var isRemoved = await eventsRepository.Remove(id, ct);
         if (!isRemoved)
         {
-            return ErrorStatusCode.BadRequest;
+            return new Error(ErrorStatusCode.NotFound, "Событие не найдено.");
         }
 
-        return UnitResult<ErrorStatusCode>.FromSuccess();
+        return UnitResult<Error>.FromSuccess();
     }
 }

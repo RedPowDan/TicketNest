@@ -36,7 +36,7 @@ public class Event
 
     public static Result<Event, string> Create(EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
     {
-        if (CanCreate(title, startAt, endAt) is { IsSuccess: true } result)
+        if (CanCreate(title, startAt, endAt) is { IsFailure: true } result)
         {
             return result.Error;
         }
