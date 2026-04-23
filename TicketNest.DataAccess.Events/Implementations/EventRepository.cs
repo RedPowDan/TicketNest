@@ -31,11 +31,16 @@ internal sealed class EventRepository : IEventsRepository
         return ValueTask.FromResult(persistenceEvent == null ? null : EventMapper.ToDomain(persistenceEvent));
     }
 
-    public Task Remove(EventId id, CancellationToken ct = default)
+    public Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default)
+    {
+        return Task.FromResult<IReadOnlyCollection<Event>>(Events.Values.Select(EventMapper.ToDomain).ToArray());
+    }
+
+    public Task<bool> Remove(EventId id, CancellationToken ct = default)
     {
         Ensure.NotNull(id, nameof(id));
 
-        Events.TryRemove(id.Value, out _);
-        return Task.CompletedTask;
+        Events.TryRemove(id.Value, out var persistenceEvent);
+        return Task.FromResult(persistenceEvent != null);
     }
 }

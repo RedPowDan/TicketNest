@@ -7,13 +7,13 @@ public class Event
 {
     public EventId Id { get; }
 
-    public EventTitle Title { get; }
+    public EventTitle Title { get; private set; }
 
-    public EventDescription? Description { get; }
+    public EventDescription? Description { get; private set; }
 
-    public DateTime StartAt { get; }
+    public DateTime StartAt { get; private set; }
 
-    public DateTime EndAt { get; }
+    public DateTime EndAt { get; private set; }
 
     private Event(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
     {
@@ -36,7 +36,7 @@ public class Event
 
     public static Result<Event, string> Create(EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
     {
-        if (CanCreate(title, description, startAt, endAt) is { IsSuccess: true } result)
+        if (CanCreate(title, startAt, endAt) is { IsSuccess: true } result)
         {
             return result.Error;
         }
@@ -44,7 +44,7 @@ public class Event
         return new Event(EventId.New(), title, description, startAt, endAt);
     }
 
-    private static UnitResult<string> CanCreate(EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    private static UnitResult<string> CanCreate(EventTitle title, DateTime startAt, DateTime endAt)
     {
         if (title == null)
         {
@@ -60,6 +60,40 @@ public class Event
         {
             return "Начало события не может быть больше чем его окончание";
         }
+
+        return UnitResult<string>.FromSuccess();
+    }
+
+    public UnitResult<string> ChangeTitle(EventTitle title)
+    {
+        Ensure.NotNull(title, nameof(title));
+
+        Title = title;
+
+        return UnitResult<string>.FromSuccess();
+    }
+
+    public UnitResult<string> ChangeDescription(EventDescription? description)
+    {
+        Description = description;
+
+        return UnitResult<string>.FromSuccess();
+    }
+
+    public UnitResult<string> ChangeStartAtAndEndAt(DateTime startAt, DateTime endAt)
+    {
+        if (startAt == default)
+        {
+            return "Начало события не может быть значением по умолчанию";
+        }
+
+        if (startAt > endAt)
+        {
+            return "Начало события не может быть больше чем его окончание";
+        }
+
+        StartAt = startAt;
+        EndAt = endAt;
 
         return UnitResult<string>.FromSuccess();
     }

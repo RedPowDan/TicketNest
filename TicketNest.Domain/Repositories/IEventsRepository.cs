@@ -9,5 +9,7 @@ public interface IEventsRepository
 
     ValueTask<Event?> Get(EventId id, CancellationToken ct = default);
 
-    Task Remove(EventId id, CancellationToken ct = default);
+    Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default);
+
+    Task<bool> Remove(EventId id, CancellationToken ct = default);
 }
