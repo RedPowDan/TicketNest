@@ -7,15 +7,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Asp.Versioning.Abstractions" />
-        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+        <PackageReference Include="Asp.Versioning.Abstractions"/>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
         <PackageReference Include="Swashbuckle.AspNetCore"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TicketNest.Application\TicketNest.Application.csproj" />
-      <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Application\TicketNest.Application.csproj"/>
+        <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj"/>
     </ItemGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
 </Project>

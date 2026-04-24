@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using TicketNest.Api.Constants;
+using TicketNest.Api.DI;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
 
@@ -18,7 +19,7 @@ public class Startup
     {
         services.AddRouting();
         services.AddControllers();
-        services.AddSwaggerGen();
+        services.AddSwagger();
         services.AddApplicationServices();
         services.AddEventDataAccess();
 

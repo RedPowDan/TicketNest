@@ -1,5 +1,4 @@
-﻿using TicketNest.Application.Constants;
-using TicketNest.Application.Models;
+﻿using TicketNest.Application.Models;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.ValueObjects;
 using TicketNest.Shared.Objects;
