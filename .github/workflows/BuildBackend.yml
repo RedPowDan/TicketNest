@@ -2,7 +2,7 @@ name: Build Backend
 
 env:
   DOTNET_PROJECT_NAME: "TicketNest"
-  DOTNET_PROJECT_PATH: "TicketNest"
+  DOTNET_PROJECT_PATH: "."
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: TicketNest
+    working-directory: .
 
 jobs:
   build:

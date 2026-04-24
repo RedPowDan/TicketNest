@@ -25,6 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{20EFEB38
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.UnitTests", "TicketNest.UnitTests\TicketNest.UnitTests.csproj", "{15713240-ED21-4E45-86A5-05F2BC14938A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{64319145-1CCF-42A2-9CD6-E9A5A2A6FD9C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\BuildBackend.yml = .github\workflows\BuildBackend.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
