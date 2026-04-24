@@ -42,7 +42,7 @@ TicketNest/
 
 ```bash
 # Клонировать репозиторий
-git clone <your-repo-url>
+git clone https://github.com/RedPowDan/TicketNest
 cd TicketNest
 
 # Восстановить зависимости
