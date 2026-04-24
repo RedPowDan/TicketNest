@@ -51,22 +51,5 @@ jobs:
           name: build-output
           path: .
 
-      - name: Run Unit Tests with Coverage (Cobertura format)
-        run: |
-          dotnet test TicketNest.UnitTests/TicketNest.UnitTests.csproj --configuration Release --no-build \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-
-      - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@v5
-        with:
-          reports: ./TestResults/**/coverage.cobertura.xml
-          targetdir: ./coveragereport
-          reporttypes: Html
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: ./coveragereport
+      - name: Run Unit Tests
+        run: dotnet test TicketNest.UnitTests/TicketNest.UnitTests.csproj --configuration Release --no-build
