@@ -8,8 +8,6 @@ public record EventId : ValueObject
 
     private EventId(Guid value)
     {
-        Ensure.NotDefault(value, nameof(value));
-
         Value = value;
     }
 
