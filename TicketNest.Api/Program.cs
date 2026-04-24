@@ -1,15 +1,21 @@
-using Microsoft.AspNetCore;
+using TicketNest.Api;
 
-namespace TicketNest.Api;
+var builder = WebApplication.CreateBuilder(args);
 
-public static class Program
+// Включаем валидацию DI только в Development
+if (builder.Environment.IsDevelopment())
 {
-    public static async Task Main(string[] args)
+    builder.Host.UseDefaultServiceProvider(options =>
     {
-        var host = CreateWebHostBuilder(args).Build();
-
-        await host.RunAsync();
-    }
-
-    private static IWebHostBuilder CreateWebHostBuilder(string[] args) => WebHost.CreateDefaultBuilder<Startup>(args);
+        options.ValidateScopes = true;
+        options.ValidateOnBuild = true;
+    });
 }
+
+var startup = new Startup(builder.Configuration);
+startup.ConfigureServices(builder.Services);
+
+var app = builder.Build();
+startup.Configure(app, builder.Environment);
+
+app.Run();
