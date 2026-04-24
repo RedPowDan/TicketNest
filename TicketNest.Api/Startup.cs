@@ -1,5 +1,5 @@
 ﻿using Asp.Versioning;
-using Asp.Versioning.ApiExplorer;
+using TicketNest.Api.Constants;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
 
@@ -26,7 +26,7 @@ public class Startup
             .AddApiVersioning(options =>
             {
                 options.AssumeDefaultVersionWhenUnspecified = true;
-                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.DefaultApiVersion = new ApiVersion(Versioning.V1, Versioning.V1);
             })
             .AddApiExplorer(options =>
             {
