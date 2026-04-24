@@ -52,4 +52,4 @@ jobs:
           path: .
 
       - name: Run Unit Tests
-        run: dotnet test TicketNest.UnitTests/TicketNest.UnitTests.csproj --configuration Release --verbosity normal
+        run: dotnet test TicketNest.UnitTests/TicketNest.UnitTests.csproj --configuration Release
