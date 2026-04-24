@@ -19,5 +19,9 @@ public abstract class ResultBase<TError>
         IsSuccess = false;
     }
 
-    protected ResultBase() => IsSuccess = true;
+    protected ResultBase()
+    {
+        _error = default!;
+        IsSuccess = true;
+    }
 }

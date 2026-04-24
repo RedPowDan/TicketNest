@@ -2,7 +2,7 @@
 
 public sealed class Result<TValue, TError> : ResultBase<TError>
 {
-    private readonly TValue _value = default;
+    private readonly TValue _value = default!;
 
     /// <exception cref="InvalidOperationException"></exception>
     public TValue Value
