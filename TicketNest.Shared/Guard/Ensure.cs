@@ -194,33 +194,6 @@ public static class Ensure
     }
 
     /// <summary>
-    /// Проверяет, что email адрес имеет корректный формат.
-    /// </summary>
-    /// <param name="email">Проверяемый email адрес.</param>
-    /// <param name="paramName">Имя параметра (автоматически определяется).</param>
-    /// <returns>Исходный email, если он валиден.</returns>
-    /// <exception cref="ArgumentException">Выбрасывается, если email имеет неверный формат.</exception>
-    public static string ValidEmail([NotNull] string? email, 
-        [CallerArgumentExpression(nameof(email))] string? paramName = null)
-    {
-        var value = NotNullOrWhiteSpace(email, paramName);
-        
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(value);
-            if (addr.Address == value)
-            {
-                return value;
-            }
-            throw new ArgumentException("Неверный формат email адреса.", paramName);
-        }
-        catch (FormatException ex)
-        {
-            throw new ArgumentException("Неверный формат email адреса.", paramName, ex);
-        }
-    }
-
-    /// <summary>
     /// Проверяет, что GUID не является пустым.
     /// </summary>
     /// <param name="guid">Проверяемый GUID.</param>
