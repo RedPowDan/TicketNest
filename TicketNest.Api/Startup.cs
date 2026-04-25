@@ -17,7 +17,10 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddRouting();
+        services.AddRouting(options => 
+        {
+            options.LowercaseUrls = true;
+        });
         services.AddControllers();
         services.AddSwagger();
         services.AddApplicationServices();

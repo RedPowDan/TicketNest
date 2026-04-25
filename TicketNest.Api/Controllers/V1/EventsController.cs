@@ -19,7 +19,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// <summary>
     /// Получить список всех событий
     /// </summary>
-    [HttpGet("events")]
+    [HttpGet]
     public async Task<ActionResult<ResultModel<EventResponse[]>>> Get(CancellationToken ct)
     {
         var events = await eventService.GetAll(ct);
@@ -29,7 +29,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// <summary>
     /// Получить событие по идентификатору
     /// </summary>
-    [HttpGet("events/{id:guid}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<ResultModel<EventResponse>>> Get(Guid id, CancellationToken ct)
     {
         var @event = await eventService.Get(EventId.From(id), ct);
@@ -44,7 +44,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// <summary>
     /// Создать событие
     /// </summary>
-    [HttpPost("events")]
+    [HttpPost]
     public async Task<ActionResult<ResultModel<EventResponse>>> Post([FromBody] EventRequest source, CancellationToken ct)
     {
         var createResult = await eventService.Create(
@@ -64,7 +64,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// <summary>
     /// Изменить событие
     /// </summary>
-    [HttpPut("events/{id:guid}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Put(Guid id, [FromBody] EventRequest source, CancellationToken ct)
     {
         var changeResult = await eventService.Change(
@@ -76,7 +76,9 @@ public class EventsController(IEventService eventService) : BaseApiController
             ct);
         if (changeResult.IsFailure)
         {
-            return BadRequest<EmptyResultModel>(changeResult.Error.Message);
+            return changeResult.Error.StatusCode == ErrorStatusCode.NotFound
+                ? NotFound<EmptyResultModel>(changeResult.Error.Message)
+                : BadRequest<EmptyResultModel>(changeResult.Error.Message);
         }
 
         return Success();
@@ -85,7 +87,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// <summary>
     /// Удалить событие
     /// </summary>
-    [HttpDelete("events/{id:guid}")]
+    [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Delete(Guid id, CancellationToken ct)
     {
         var deleteResult = await eventService.Delete(EventId.From(id), ct);

@@ -2,7 +2,7 @@
 
 namespace TicketNest.Domain.ValueObjects;
 
-public record EventId : ValueObject
+public record EventId
 {
     public Guid Value { get; }
 
@@ -14,9 +14,4 @@ public record EventId : ValueObject
     public static EventId New() => new EventId(SequentialGuidFactory.Create(DateTime.UtcNow));
 
     public static EventId From(Guid value) => new EventId(value);
-
-    protected override IEnumerable<object?> GetEqualityComponents()
-    {
-        yield return Value;
-    }
 }
