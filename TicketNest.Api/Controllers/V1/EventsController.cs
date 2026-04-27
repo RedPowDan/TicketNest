@@ -13,7 +13,7 @@ namespace TicketNest.Api.Controllers.V1;
 
 [ApiController]
 [ApiVersion(Versioning.V1)]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("v{version:apiVersion}/[controller]")]
 public class EventsController(IEventService eventService) : BaseApiController
 {
     /// <summary>
