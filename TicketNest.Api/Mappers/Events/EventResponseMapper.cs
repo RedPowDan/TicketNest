@@ -9,9 +9,9 @@ public static class EventResponseMapper
     {
         return new EventResponse
         {
-            Id = source.Id.Value,
-            Title = source.Title.Value,
-            Description = source.Description?.Value,
+            Id = source.Id,
+            Title = source.Title,
+            Description = source.Description,
             EndAt = source.EndAt,
             StartAt = source.StartAt,
         };

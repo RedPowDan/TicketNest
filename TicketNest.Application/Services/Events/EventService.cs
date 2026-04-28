@@ -2,7 +2,6 @@
 using TicketNest.Application.Models;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Repositories;
-using TicketNest.Domain.ValueObjects;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.Application.Services.Events;
@@ -11,11 +10,11 @@ internal sealed class EventService(IEventsRepository eventsRepository) : IEventS
 {
     public Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default) => eventsRepository.GetAll(ct);
 
-    public async Task<Event?> Get(EventId id, CancellationToken ct = default) => await eventsRepository.Get(id, ct);
+    public async Task<Event?> Get(Guid id, CancellationToken ct = default) => await eventsRepository.Get(id, ct);
 
     public async Task<Result<Event, Error>> Create(
-        EventTitle title,
-        EventDescription? description,
+        string title,
+        string? description,
         DateTime startAt,
         DateTime endAt,
         CancellationToken ct = default)
@@ -32,9 +31,9 @@ internal sealed class EventService(IEventsRepository eventsRepository) : IEventS
     }
 
     public async Task<UnitResult<Error>> Change(
-        EventId id,
-        EventTitle title,
-        EventDescription? description,
+        Guid id,
+        string title,
+        string? description,
         DateTime startAt,
         DateTime endAt,
         CancellationToken ct = default)
@@ -68,7 +67,7 @@ internal sealed class EventService(IEventsRepository eventsRepository) : IEventS
         return UnitResult<Error>.FromSuccess();
     }
 
-    public async Task<UnitResult<Error>> Delete(EventId id, CancellationToken ct = default)
+    public async Task<UnitResult<Error>> Delete(Guid id, CancellationToken ct = default)
     {
         var isRemoved = await eventsRepository.Remove(id, ct);
         if (!isRemoved)

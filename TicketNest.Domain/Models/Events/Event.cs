@@ -1,23 +1,27 @@
-﻿using TicketNest.Domain.ValueObjects;
+﻿using TicketNest.Shared;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.Domain.Models.Events;
 
 public class Event
 {
-    public EventId Id { get; }
+    public Guid Id { get; }
 
-    public EventTitle Title { get; private set; }
+    public string Title { get; private set; }
 
-    public EventDescription? Description { get; private set; }
+    public string? Description { get; private set; }
 
     public DateTime StartAt { get; private set; }
 
     public DateTime EndAt { get; private set; }
 
-    private Event(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    private Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
     {
-        Ensure.NotNull(id, nameof(id));
+        Ensure.NotNullOrEmpty(title, nameof(title));
+        if (description != null)
+        {
+            Ensure.NotNullOrEmpty(description, nameof(description));
+        }
         Ensure.NotNull(title, nameof(title));
         Ensure.NotDefault(startAt, nameof(startAt));
         Ensure.NotDefault(endAt, nameof(endAt));
@@ -29,26 +33,31 @@ public class Event
         EndAt = endAt;
     }
 
-    public static Event LoadFromStorage(EventId id, EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    public static Event LoadFromStorage(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
     {
         return new Event(id, title, description, startAt, endAt);
     }
 
-    public static Result<Event, string> Create(EventTitle title, EventDescription? description, DateTime startAt, DateTime endAt)
+    public static Result<Event, string> Create(string title, string? description, DateTime startAt, DateTime endAt)
     {
-        if (CanCreate(title, startAt, endAt) is { IsFailure: true } result)
+        if (CanCreate(title, description, startAt, endAt) is { IsFailure: true } result)
         {
             return result.Error;
         }
 
-        return new Event(EventId.New(), title, description, startAt, endAt);
+        return new Event(SequentialGuidFactory.Create(DateTime.UtcNow), title, description, startAt, endAt);
     }
 
-    private static UnitResult<string> CanCreate(EventTitle title, DateTime startAt, DateTime endAt)
+    private static UnitResult<string> CanCreate(string title, string? description, DateTime startAt, DateTime endAt)
     {
-        if (title == null)
+        if (string.IsNullOrWhiteSpace(title))
         {
             return "Название события не должно быть пустое";
+        }
+
+        if (description != null && string.IsNullOrEmpty(description))
+        {
+            return "Описание не может быть пустой строкой";
         }
 
         if (startAt == default)
@@ -64,17 +73,22 @@ public class Event
         return UnitResult<string>.FromSuccess();
     }
 
-    public UnitResult<string> ChangeTitle(EventTitle title)
+    public UnitResult<string> ChangeTitle(string title)
     {
-        Ensure.NotNull(title, nameof(title));
+        Ensure.NotNullOrEmpty(title, nameof(title));
 
         Title = title;
 
         return UnitResult<string>.FromSuccess();
     }
 
-    public UnitResult<string> ChangeDescription(EventDescription? description)
+    public UnitResult<string> ChangeDescription(string? description)
     {
+        if (description != null)
+        {
+            Ensure.NotNullOrEmpty(description, nameof(description));
+        }
+
         Description = description;
 
         return UnitResult<string>.FromSuccess();

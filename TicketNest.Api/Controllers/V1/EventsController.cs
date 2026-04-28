@@ -6,8 +6,6 @@ using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Events;
 using TicketNest.Application.Constants;
 using TicketNest.Application.Services.Events;
-using TicketNest.Domain.ValueObjects;
-using EventId = TicketNest.Domain.ValueObjects.EventId;
 
 namespace TicketNest.Api.Controllers.V1;
 
@@ -32,7 +30,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ResultModel<EventResponse>>> Get(Guid id, CancellationToken ct)
     {
-        var @event = await eventService.Get(EventId.From(id), ct);
+        var @event = await eventService.Get(id, ct);
         if (@event == null)
         {
             return NotFound<EventResponse>();
@@ -48,8 +46,8 @@ public class EventsController(IEventService eventService) : BaseApiController
     public async Task<ActionResult<ResultModel<EventResponse>>> Post([FromBody] EventRequest source, CancellationToken ct)
     {
         var createResult = await eventService.Create(
-            EventTitle.From(source.Title),
-            source.Description == null ? null : EventDescription.From(source.Description),
+            source.Title,
+            source.Description,
             source.StartAt,
             source.EndAt,
             ct);
@@ -68,9 +66,9 @@ public class EventsController(IEventService eventService) : BaseApiController
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Put(Guid id, [FromBody] EventRequest source, CancellationToken ct)
     {
         var changeResult = await eventService.Change(
-            EventId.From(id),
-            EventTitle.From(source.Title),
-            source.Description == null ? null : EventDescription.From(source.Description),
+            id,
+            source.Title,
+            source.Description,
             source.StartAt,
             source.EndAt,
             ct);
@@ -90,7 +88,7 @@ public class EventsController(IEventService eventService) : BaseApiController
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Delete(Guid id, CancellationToken ct)
     {
-        var deleteResult = await eventService.Delete(EventId.From(id), ct);
+        var deleteResult = await eventService.Delete(id, ct);
         if (deleteResult.IsFailure)
         {
             return deleteResult.Error.StatusCode == ErrorStatusCode.NotFound

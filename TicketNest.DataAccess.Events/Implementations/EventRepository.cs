@@ -3,7 +3,6 @@ using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Repositories;
-using TicketNest.Domain.ValueObjects;
 
 namespace TicketNest.DataAccess.Events.Implementations;
 
@@ -22,11 +21,9 @@ internal sealed class EventRepository : IEventsRepository
         return Task.CompletedTask;
     }
 
-    public ValueTask<Event?> Get(EventId id, CancellationToken ct = default)
+    public ValueTask<Event?> Get(Guid id, CancellationToken ct = default)
     {
-        Ensure.NotNull(id, nameof(id));
-
-        Events.TryGetValue(id.Value, out var persistenceEvent);
+        Events.TryGetValue(id, out var persistenceEvent);
 
         return ValueTask.FromResult(persistenceEvent == null ? null : EventMapper.ToDomain(persistenceEvent));
     }
@@ -36,11 +33,9 @@ internal sealed class EventRepository : IEventsRepository
         return Task.FromResult<IReadOnlyCollection<Event>>(Events.Values.Select(EventMapper.ToDomain).ToArray());
     }
 
-    public Task<bool> Remove(EventId id, CancellationToken ct = default)
+    public Task<bool> Remove(Guid id, CancellationToken ct = default)
     {
-        Ensure.NotNull(id, nameof(id));
-
-        Events.TryRemove(id.Value, out var persistenceEvent);
+        Events.TryRemove(id, out var persistenceEvent);
         return Task.FromResult(persistenceEvent != null);
     }
 }

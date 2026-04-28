@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.ValueObjects;
 
 namespace TicketNest.UnitTests.Domain.Models.Events;
 
@@ -11,9 +10,9 @@ public class EventTests
     public void LoadFromStorage_should_create_event_with_all_properties()
     {
         // Arrange
-        var eventId = EventId.From(Guid.NewGuid());
-        var eventTitle = EventTitle.From("Test Event");
-        var eventDescription = EventDescription.From("Test Description");
+        var eventId = Guid.NewGuid();
+        var eventTitle = "Test Event";
+        var eventDescription = "Test Description";
         var startAt = new DateTime(2024, 12, 25, 18, 0, 0);
         var endAt = new DateTime(2024, 12, 25, 22, 0, 0);
 
@@ -32,8 +31,8 @@ public class EventTests
     public void LoadFromStorage_should_create_event_with_null_description()
     {
         // Arrange
-        var eventId = EventId.From(Guid.NewGuid());
-        var eventTitle = EventTitle.From("Test Event");
+        var eventId = Guid.NewGuid();
+        var eventTitle = "Test Event";
         var startAt = new DateTime(2024, 12, 25, 18, 0, 0);
         var endAt = new DateTime(2024, 12, 25, 22, 0, 0);
 
@@ -48,8 +47,8 @@ public class EventTests
     public void Create_should_return_successful_result_when_all_parameters_are_valid()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
-        var description = EventDescription.From("Valid Description");
+        var title = "Valid Event";
+        var description = "Valid Description";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
 
@@ -69,7 +68,7 @@ public class EventTests
     public void Create_should_return_successful_result_with_null_description()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
 
@@ -100,7 +99,7 @@ public class EventTests
     public void Create_should_return_failure_when_startAt_is_default()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var startAt = default(DateTime);
         var endAt = DateTime.Now.AddDays(2);
 
@@ -116,7 +115,7 @@ public class EventTests
     public void Create_should_return_failure_when_startAt_is_greater_than_endAt()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var startAt = DateTime.Now.AddDays(2);
         var endAt = DateTime.Now.AddDays(1);
 
@@ -132,7 +131,7 @@ public class EventTests
     public void Create_should_generate_new_id()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
 
@@ -149,7 +148,7 @@ public class EventTests
     {
         // Arrange
         var eventEntity = CreateValidEvent();
-        var newTitle = EventTitle.From("New Title");
+        var newTitle = "New Title";
 
         // Act
         var result = eventEntity.ChangeTitle(newTitle);
@@ -177,7 +176,7 @@ public class EventTests
     {
         // Arrange
         var eventEntity = CreateValidEvent();
-        var newDescription = EventDescription.From("New Description");
+        var newDescription = "New Description";
 
         // Act
         var result = eventEntity.ChangeDescription(newDescription);
@@ -280,8 +279,8 @@ public class EventTests
     {
         // Arrange
         var eventEntity = CreateValidEvent();
-        var newTitle = EventTitle.From("Updated Title");
-        var newDescription = EventDescription.From("Updated Description");
+        var newTitle = "Updated Title";
+        var newDescription = "Updated Description";
         var newStartAt = DateTime.Now.AddDays(3);
         var newEndAt = DateTime.Now.AddDays(5);
 
@@ -301,7 +300,7 @@ public class EventTests
     public void Create_should_handle_startAt_and_endAt_being_equal()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var sameDateTime = DateTime.Now.AddDays(1);
 
         // Act
@@ -317,7 +316,7 @@ public class EventTests
     public void Create_should_handle_minimum_date_values()
     {
         // Arrange
-        var title = EventTitle.From("Valid Event");
+        var title = "Valid Event";
         var startAt = DateTime.Now;
         var endAt = startAt.AddHours(1);
 
@@ -333,7 +332,7 @@ public class EventTests
     // Helper methods
     private static Event CreateValidEvent()
     {
-        var title = EventTitle.From("Test Event");
+        var title = "Test Event";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
         
@@ -343,8 +342,8 @@ public class EventTests
 
     private static Event CreateValidEventWithDescription()
     {
-        var title = EventTitle.From("Test Event");
-        var description = EventDescription.From("Test Description");
+        var title = "Test Event";
+        var description = "Test Description";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
         

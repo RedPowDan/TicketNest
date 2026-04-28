@@ -2,7 +2,6 @@
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.ValueObjects;
 
 namespace TicketNest.UnitTests.DataAccess.Events.Mappers;
 
@@ -26,9 +25,9 @@ public class EventMapperTests
         var domainEvent = EventMapper.ToDomain(persistenceEvent);
 
         // Assert
-        domainEvent.Id.Value.Should().Be(persistenceEvent.Id);
-        domainEvent.Title.Value.Should().Be(persistenceEvent.Title);
-        domainEvent.Description!.Value.Should().Be(persistenceEvent.Description);
+        domainEvent.Id.Should().Be(persistenceEvent.Id);
+        domainEvent.Title.Should().Be(persistenceEvent.Title);
+        domainEvent.Description!.Should().Be(persistenceEvent.Description);
         domainEvent.StartAt.Should().Be(persistenceEvent.StartAt);
         domainEvent.EndAt.Should().Be(persistenceEvent.EndAt);
     }
@@ -101,7 +100,7 @@ public class EventMapperTests
         var domainEvent = EventMapper.ToDomain(persistenceEvent);
 
         // Assert
-        domainEvent.Title.Value.Should().Be(longTitle);
+        domainEvent.Title.Should().Be(longTitle);
     }
 
     [Test]
@@ -132,9 +131,9 @@ public class EventMapperTests
     public void To_persistence_should_map_all_properties_correctly()
     {
         // Arrange
-        var eventId = EventId.From(Guid.NewGuid());
-        var eventTitle = EventTitle.From("Test Event Title");
-        var eventDescription = EventDescription.From("Test Event Description");
+        var eventId = Guid.NewGuid();
+        var eventTitle = "Test Event Title";
+        var eventDescription = "Test EventDescription";
 
         var domainEvent = Event.LoadFromStorage(
             id: eventId,
@@ -147,9 +146,9 @@ public class EventMapperTests
         var persistenceEvent = EventMapper.ToPersistence(domainEvent);
 
         // Assert
-        persistenceEvent.Id.Should().Be(eventId.Value);
-        persistenceEvent.Title.Should().Be(eventTitle.Value);
-        persistenceEvent.Description.Should().Be(eventDescription.Value);
+        persistenceEvent.Id.Should().Be(eventId);
+        persistenceEvent.Title.Should().Be(eventTitle);
+        persistenceEvent.Description.Should().Be(eventDescription);
         persistenceEvent.StartAt.Should().Be(domainEvent.StartAt);
         persistenceEvent.EndAt.Should().Be(domainEvent.EndAt);
     }
@@ -158,8 +157,8 @@ public class EventMapperTests
     public void To_persistence_should_map_description_as_null_when_domain_description_is_null()
     {
         // Arrange
-        var eventId = EventId.From(Guid.NewGuid());
-        var eventTitle = EventTitle.From("Test Event Title");
+        var eventId = Guid.NewGuid();
+        var eventTitle = "Test Event Title";
 
         var domainEvent = Event.LoadFromStorage(
             id: eventId,
@@ -194,9 +193,10 @@ public class EventMapperTests
         var expectedDescription = "The biggest tech conference";
 
         var domainEvent = Event.LoadFromStorage(
-            id: EventId.From(expectedId),
-            title: EventTitle.From(expectedTitle),
-            description: EventDescription.From(expectedDescription),
+            id: expectedId,
+            title: expectedTitle,
+            description:
+            expectedDescription,
             startAt: new DateTime(2024, 10, 15, 9, 0, 0),
             endAt: new DateTime(2024, 10, 17, 18, 0, 0));
 
@@ -216,9 +216,9 @@ public class EventMapperTests
         var nowDateTime = DateTime.Now;
         var afterDay = nowDateTime.AddDays(1);
         var domainEvent = Event.LoadFromStorage(
-            id: EventId.From(Guid.NewGuid()),
-            title: EventTitle.From("Test Event"),
-            description: EventDescription.From("Description"),
+            id: Guid.NewGuid(),
+            title: "Test Event",
+            description: "Description",
             startAt: nowDateTime,
             endAt: afterDay);
 
@@ -238,9 +238,9 @@ public class EventMapperTests
         var descriptionWithSpecialChars = "Description with special chars: 😀🎉🚀";
 
         var domainEvent = Event.LoadFromStorage(
-            id: EventId.From(Guid.NewGuid()),
-            title: EventTitle.From(titleWithSpecialChars),
-            description: EventDescription.From(descriptionWithSpecialChars),
+            id: Guid.NewGuid(),
+            title: titleWithSpecialChars,
+            description: descriptionWithSpecialChars,
             startAt: new DateTime(2024, 12, 25, 18, 0, 0),
             endAt: new DateTime(2024, 12, 25, 22, 0, 0));
 

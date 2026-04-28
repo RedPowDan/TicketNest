@@ -1,6 +1,5 @@
 ﻿using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.ValueObjects;
 
 namespace TicketNest.DataAccess.Events.Mappers;
 
@@ -10,9 +9,9 @@ internal static class EventMapper
     {
         Ensure.NotNull(source, nameof(source));
 
-        return Event.LoadFromStorage(id: EventId.From(source.Id),
-            title: EventTitle.From(source.Title),
-            description: source.Description == null ? null : EventDescription.From(source.Description),
+        return Event.LoadFromStorage(id: source.Id,
+            title: source.Title,
+            description: source.Description,
             startAt: source.StartAt,
             endAt: source.EndAt);
     }
@@ -23,9 +22,9 @@ internal static class EventMapper
 
         return new PersistenceEvent
         {
-            Id = source.Id.Value,
-            Title = source.Title.Value,
-            Description = source.Description?.Value,
+            Id = source.Id,
+            Title = source.Title,
+            Description = source.Description,
             EndAt = source.EndAt,
             StartAt = source.StartAt,
         };
