@@ -1,6 +1,4 @@
-﻿using Asp.Versioning;
-using TicketNest.Api.Constants;
-using TicketNest.Api.DI;
+﻿using TicketNest.Api.DI;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
 
@@ -25,18 +23,6 @@ public class Startup
         services.AddSwagger();
         services.AddApplicationServices();
         services.AddEventDataAccess();
-
-        services
-            .AddApiVersioning(options =>
-            {
-                options.AssumeDefaultVersionWhenUnspecified = true;
-                options.DefaultApiVersion = new ApiVersion(Versioning.V1, Versioning.V1);
-            })
-            .AddApiExplorer(options =>
-            {
-                options.GroupNameFormat = "'v'VVV";
-                options.SubstituteApiVersionInUrl = true;
-            });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

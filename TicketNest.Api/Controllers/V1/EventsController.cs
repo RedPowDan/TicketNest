@@ -1,6 +1,4 @@
-﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc;
-using TicketNest.Api.Constants;
+﻿using Microsoft.AspNetCore.Mvc;
 using TicketNest.Api.Mappers.Events;
 using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Events;
@@ -10,8 +8,7 @@ using TicketNest.Application.Services.Events;
 namespace TicketNest.Api.Controllers.V1;
 
 [ApiController]
-[ApiVersion(Versioning.V1)]
-[Route("v{version:apiVersion}/[controller]")]
+[Route("[controller]")]
 public class EventsController(IEventService eventService) : BaseApiController
 {
     /// <summary>
