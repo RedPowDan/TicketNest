@@ -1,0 +1,38 @@
+# Build outputs
+bin/
+obj/
+out/
+publish/
+
+# User settings
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Configuration files with secrets
+appsettings.Development.json
+appsettings.Production.json
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.mdf
+*.ldf
+
+# NuGet packages
+packages/
+*.nupkg
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Rider
+.sln.ide/
+.sln.dotsettings*

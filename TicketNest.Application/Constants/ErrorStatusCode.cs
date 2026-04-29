@@ -1,0 +1,23 @@
+﻿namespace TicketNest.Application.Constants;
+
+/// <summary>
+/// Статус коды для ошибочных операций
+/// </summary>
+public enum ErrorStatusCode
+{
+    /// <summary>
+    /// В ходе операции сущность не найдена.
+    /// </summary>
+    /// <remarks>
+    /// Например: обновление/изменение агрегата
+    /// </remarks>
+    NotFound = 1,
+    
+    /// <summary>
+    /// Плохой запрос на выполнение действия.
+    /// </summary>
+    /// <remarks>
+    /// Например: отсутствие обязательного поля
+    /// </remarks>
+    BadRequest = 2,
+}
