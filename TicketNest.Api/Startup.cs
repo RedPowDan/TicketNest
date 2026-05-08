@@ -1,4 +1,6 @@
 ﻿using TicketNest.Api.DI;
+using TicketNest.Api.Infrastructure;
+using TicketNest.Api.Middlewares;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
 
@@ -23,6 +25,11 @@ public class Startup
         services.AddSwagger();
         services.AddApplicationServices();
         services.AddEventDataAccess();
+        services.AddScoped<ExceptionHandlingMiddleware>();
+
+        services
+            .AddMvc()
+            .AddNewtonsoftJson(options => JsonSettingsConfigurator.ConfigureSettings(options.SerializerSettings));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -38,6 +45,7 @@ public class Startup
             });
         }
 
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseHttpsRedirection();
         app.UseRouting();
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });

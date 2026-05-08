@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TicketNest.Api.Exceptions;
 using TicketNest.Api.Mappers.Events;
 using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Events;
-using TicketNest.Application.Constants;
 using TicketNest.Application.Services.Events;
 
 namespace TicketNest.Api.Controllers.V1;
@@ -30,7 +30,7 @@ public class EventsController(IEventService eventService) : BaseApiController
         var @event = await eventService.Get(id, ct);
         if (@event == null)
         {
-            return NotFound<EventResponse>();
+            throw new NotFoundException("Не найдено событие");
         }
 
         return Success(EventResponseMapper.Map(@event));
@@ -50,7 +50,7 @@ public class EventsController(IEventService eventService) : BaseApiController
             ct);
         if (createResult.IsFailure)
         {
-            return BadRequest<EventResponse>(createResult.Error.Message);
+            ExceptionFactory.ThrowApiException(createResult.Error);
         }
 
         return Created(EventResponseMapper.Map(createResult.Value));
@@ -71,9 +71,7 @@ public class EventsController(IEventService eventService) : BaseApiController
             ct);
         if (changeResult.IsFailure)
         {
-            return changeResult.Error.StatusCode == ErrorStatusCode.NotFound
-                ? NotFound<EmptyResultModel>(changeResult.Error.Message)
-                : BadRequest<EmptyResultModel>(changeResult.Error.Message);
+            ExceptionFactory.ThrowApiException(changeResult.Error);
         }
 
         return Success();
@@ -88,9 +86,7 @@ public class EventsController(IEventService eventService) : BaseApiController
         var deleteResult = await eventService.Delete(id, ct);
         if (deleteResult.IsFailure)
         {
-            return deleteResult.Error.StatusCode == ErrorStatusCode.NotFound
-                ? NotFound<EmptyResultModel>(deleteResult.Error.Message)
-                : BadRequest<EmptyResultModel>(deleteResult.Error.Message);
+            ExceptionFactory.ThrowApiException(deleteResult.Error);
         }
 
         return Success();

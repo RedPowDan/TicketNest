@@ -22,19 +22,4 @@ public abstract class BaseApiController : ControllerBase
     {
         return Ok(ResultModel<EmptyResultModel>.FromSuccess(EmptyResultModel));
     }
-
-    protected ActionResult<ResultModel<T>> Failure<T>(string message, int statusCode = 400) where T : class
-    {
-        return StatusCode(statusCode, ResultModel<T>.FromFailure(new ErrorModel { Message = message }));
-    }
-
-    protected ActionResult<ResultModel<T>> NotFound<T>(string message = "Resource not found") where T : class
-    {
-        return NotFound(ResultModel<T>.FromFailure(new ErrorModel { Message = message }));
-    }
-
-    protected ActionResult<ResultModel<T>> BadRequest<T>(string message) where T : class
-    {
-        return BadRequest(ResultModel<T>.FromFailure(new ErrorModel { Message = message }));
-    }
 }
