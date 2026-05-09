@@ -1,11 +1,13 @@
-﻿using System.Net.Mime;
+﻿using System.Net;
+using System.Net.Mime;
 using Newtonsoft.Json;
 using TicketNest.Api.Infrastructure;
 using TicketNest.Api.Models.V1;
+using TicketNest.Api.Models.V1.Errors;
 
 namespace TicketNest.Api.Middlewares;
 
-internal sealed class ExceptionHandlingMiddleware : IMiddleware
+internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger) : IMiddleware
 {
     private static readonly JsonSerializer Serializer = GetSerializer();
 
@@ -18,6 +20,7 @@ internal sealed class ExceptionHandlingMiddleware : IMiddleware
         catch (Exception exception)
         {
             var errorModel = ErrorModelFactory.Create(exception);
+            LogError(errorModel);
 
             context.Response.StatusCode = (int) errorModel.HttpStatusCode;
             context.Response.ContentType = MediaTypeNames.Application.Json;
@@ -26,6 +29,21 @@ internal sealed class ExceptionHandlingMiddleware : IMiddleware
             await using var writer = new StreamWriter(context.Response.Body);
             Serializer.Serialize(writer, result);
         }
+    }
+
+    private void LogError(ErrorModel errorModel)
+    {
+        if (errorModel.HttpStatusCode >= HttpStatusCode.InternalServerError)
+        {
+            logger.LogError(
+                "{ErrorModelMessage}, детали: {ErrorModelDetail}, статус код: {ErrorModelErrorCode}, httpStatusCode: {ErrorModelHttpStatusCode}",
+                errorModel.Message, errorModel.Detail, errorModel.ErrorCode, errorModel.HttpStatusCode);
+            return;
+        }
+
+        logger.LogWarning(
+            "{ErrorModelMessage}, детали: {ErrorModelDetail}, статус код: {ErrorModelErrorCode}, httpStatusCode: {ErrorModelHttpStatusCode}",
+            errorModel.Message, errorModel.Detail, errorModel.ErrorCode, errorModel.HttpStatusCode);
     }
 
     private static JsonSerializer GetSerializer()
