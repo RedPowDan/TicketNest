@@ -165,10 +165,10 @@ public class EventTests
         var eventEntity = CreateValidEvent();
 
         // Act
-        var act = () => eventEntity.ChangeTitle(null!);
+        var changeResult = eventEntity.ChangeTitle(null!);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        changeResult.IsFailure.Should().BeTrue();
     }
 
     [Test]
