@@ -3,7 +3,9 @@ using TicketNest.DataAccess.Events.Filters;
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Filters;
+using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Pagination;
 using TicketNest.Domain.Repositories;
 using TicketNest.Shared.Expressions;
 
@@ -32,17 +34,26 @@ internal sealed class EventRepository : IEventsRepository
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyCollection<Event>> GetAll(EventsFilter filter, CancellationToken ct = default)
+    public Task<PaginatedResult<Event>> GetAll(EventsFilter filter, PaginationRequest paginationRequest, CancellationToken ct = default)
     {
         var persistanceFilter = PersistenceEventsFilter.CreateFrom(filter);
 
         var expression = persistanceFilter.GetFilterExpressions().CombineAnd();
 
-        return Task.FromResult<IReadOnlyCollection<Event>>(Events
+        var items = Events
             .Values
             .Where(expression.Compile())
+            .Skip(paginationRequest.Page * paginationRequest.PageSize)
+            .Take(paginationRequest.PageSize)
             .Select(EventMapper.ToDomain)
-            .ToArray());
+            .ToArray();
+
+        var totalCount = Events
+            .Values
+            .Where(expression.Compile())
+            .Count();
+
+        return Task.FromResult(new PaginatedResult<Event>(items: items, totalCount: totalCount, currentPage: paginationRequest.Page));
     }
 
     public Task<bool> Remove(Guid id, CancellationToken ct = default)
