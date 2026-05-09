@@ -75,7 +75,10 @@ public class Event
 
     public UnitResult<string> ChangeTitle(string title)
     {
-        Ensure.NotNullOrEmpty(title, nameof(title));
+        if (string.IsNullOrEmpty(title))
+        {
+            return "Название не может быть пустым";
+        }
 
         Title = title;
 

@@ -8,11 +8,11 @@ public sealed class EventsFilter
 
     public DateTime? To { get; }
 
-    public EventsFilter(string? title, DateTime? from, DateTime? to)
+    public EventsFilter(string? title = null, DateTime? from = null, DateTime? to = null)
     {
         if (from != null && to != null)
         {
-            Ensure.That(from >= to, $"from={from} <= to={to}");
+            Ensure.That(from <= to, $"from={from} >= to={to}");
         }
 
         Title = title;
