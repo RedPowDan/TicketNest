@@ -29,11 +29,10 @@ public class EventServiceTests
     public async Task Create_Should_ReturnSuccess_When_ValidDataProvided()
     {
         // Arrange
-        var title = "Valid Event Title";
-        string? description = "Valid Description";
+        const string title = "Valid Event Title";
+        const string description = "Valid Description";
         var startAt = DateTime.UtcNow.AddDays(1);
         var endAt = DateTime.UtcNow.AddDays(2);
-        var expectedEvent = Event.Create(title, description, startAt, endAt).Value;
 
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
@@ -48,11 +47,11 @@ public class EventServiceTests
         result.Value.Description.Should().Be(description);
         result.Value.StartAt.Should().Be(startAt);
         result.Value.EndAt.Should().Be(endAt);
-        
-        await _eventsRepository.Received(1).Save(Arg.Is<Event>(e => 
-            e.Title == title && 
-            e.Description == description && 
-            e.StartAt == startAt && 
+
+        await _eventsRepository.Received(1).Save(Arg.Is<Event>(e =>
+            e.Title == title &&
+            e.Description == description &&
+            e.StartAt == startAt &&
             e.EndAt == endAt), Arg.Any<CancellationToken>());
     }
 
@@ -81,7 +80,7 @@ public class EventServiceTests
         result.TotalCount.Should().Be(expectedResult.TotalCount);
         result.CurrentPage.Should().Be(expectedResult.CurrentPage);
         result.Count.Should().Be(expectedResult.Count);
-        
+
         await _eventsRepository.Received(1).GetAll(filter, paginationRequest, Arg.Any<CancellationToken>());
     }
 
@@ -91,7 +90,7 @@ public class EventServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
         var expectedEvent = CreateValidEvent();
-        
+
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(expectedEvent);
 
@@ -100,9 +99,9 @@ public class EventServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(expectedEvent.Id);
+        result.Id.Should().Be(expectedEvent.Id);
         result.Title.Should().Be(expectedEvent.Title);
-        
+
         await _eventsRepository.Received(1).Get(eventId, Arg.Any<CancellationToken>());
     }
 
@@ -112,14 +111,14 @@ public class EventServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
         var existingEvent = CreateValidEvent(eventId);
-        var newTitle = "Updated Title";
-        string? newDescription = "Updated Description";
+        const string newTitle = "Updated Title";
+        const string newDescription = "Updated Description";
         var newStartAt = DateTime.UtcNow.AddDays(3);
         var newEndAt = DateTime.UtcNow.AddDays(4);
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(existingEvent);
-        
+
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
@@ -128,12 +127,12 @@ public class EventServiceTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        
-        await _eventsRepository.Received(1).Save(Arg.Is<Event>(e => 
-            e.Id == eventId && 
-            e.Title == newTitle && 
-            e.Description == newDescription && 
-            e.StartAt == newStartAt && 
+
+        await _eventsRepository.Received(1).Save(Arg.Is<Event>(e =>
+            e.Id == eventId &&
+            e.Title == newTitle &&
+            e.Description == newDescription &&
+            e.StartAt == newStartAt &&
             e.EndAt == newEndAt), Arg.Any<CancellationToken>());
     }
 
@@ -142,7 +141,7 @@ public class EventServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        
+
         _eventsRepository.Remove(eventId, Arg.Any<CancellationToken>())
             .Returns(true);
 
@@ -151,7 +150,7 @@ public class EventServiceTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        
+
         await _eventsRepository.Received(1).Remove(eventId, Arg.Any<CancellationToken>());
     }
 
@@ -177,10 +176,10 @@ public class EventServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Items.Should().AllSatisfy(e => e.Title.Should().Contain("Conference"));
-        
+
         await _eventsRepository.Received(1).GetAll(
-            Arg.Is<EventsFilter>(f => f.Title == "Conference"), 
-            paginationRequest, 
+            Arg.Is<EventsFilter>(f => f.Title == "Conference"),
+            paginationRequest,
             Arg.Any<CancellationToken>());
     }
 
@@ -190,7 +189,7 @@ public class EventServiceTests
         // Arrange
         var startDate = DateTime.UtcNow.AddDays(1);
         var endDate = DateTime.UtcNow.AddDays(30);
-        var filter = new EventsFilter(from: startDate, to:endDate);
+        var filter = new EventsFilter(from: startDate, to: endDate);
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedEvents = new List<Event>
         {
@@ -207,15 +206,15 @@ public class EventServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Items.Should().AllSatisfy(e => 
+        result.Items.Should().AllSatisfy(e =>
         {
             e.StartAt.Should().BeOnOrAfter(startDate);
             e.EndAt.Should().BeOnOrBefore(endDate);
         });
-        
+
         await _eventsRepository.Received(1).GetAll(
-            Arg.Is<EventsFilter>(f => f.From == startDate && f.To == endDate), 
-            paginationRequest, 
+            Arg.Is<EventsFilter>(f => f.From == startDate && f.To == endDate),
+            paginationRequest,
             Arg.Any<CancellationToken>());
     }
 
@@ -225,18 +224,18 @@ public class EventServiceTests
         // Arrange
         var startDate = DateTime.UtcNow.AddDays(1);
         var endDate = DateTime.UtcNow.AddDays(30);
-        var filter = new EventsFilter 
-        ( 
-            title:"Workshop",
-            from: startDate, 
-            to: endDate 
+        var filter = new EventsFilter
+        (
+            title: "Workshop",
+            from: startDate,
+            to: endDate
         );
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedEvents = new List<Event>
         {
             CreateValidEvent(
-                title: "Python Workshop", 
-                startAt: DateTime.UtcNow.AddDays(5), 
+                title: "Python Workshop",
+                startAt: DateTime.UtcNow.AddDays(5),
                 endAt: DateTime.UtcNow.AddDays(6))
         };
         var expectedResult = new PaginatedResult<Event>(expectedEvents, 1, 1);
@@ -253,10 +252,10 @@ public class EventServiceTests
         result.Items.First().Title.Should().Contain("Workshop");
         result.Items.First().StartAt.Should().BeOnOrAfter(startDate);
         result.Items.First().EndAt.Should().BeOnOrBefore(endDate);
-        
+
         await _eventsRepository.Received(1).GetAll(
-            Arg.Is<EventsFilter>(f => f.Title == "Workshop" && f.From == startDate && f.To == endDate), 
-            paginationRequest, 
+            Arg.Is<EventsFilter>(f => f.Title == "Workshop" && f.From == startDate && f.To == endDate),
+            paginationRequest,
             Arg.Any<CancellationToken>());
     }
 
@@ -269,16 +268,16 @@ public class EventServiceTests
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
-        
+
         _eventsRepository.Get(nonExistentId, Arg.Any<CancellationToken>())
-            .Returns((Event?)null);
+            .Returns((Event?) null);
 
         // Act
         var result = await _eventService.Get(nonExistentId);
 
         // Assert
         result.Should().BeNull();
-        
+
         await _eventsRepository.Received(1).Get(nonExistentId, Arg.Any<CancellationToken>());
     }
 
@@ -287,23 +286,23 @@ public class EventServiceTests
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
-        
+
         _eventsRepository.Get(nonExistentId, Arg.Any<CancellationToken>())
-            .Returns((Event?)null);
+            .Returns((Event?) null);
 
         // Act
         var result = await _eventService.Change(
-            nonExistentId, 
-            "New Title", 
-            "New Description", 
-            DateTime.UtcNow.AddDays(1), 
+            nonExistentId,
+            "New Title",
+            "New Description",
+            DateTime.UtcNow.AddDays(1),
             DateTime.UtcNow.AddDays(2));
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.NotFound);
         result.Error.Message.Should().Be("Не найдено событие");
-        
+
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
 
@@ -311,8 +310,8 @@ public class EventServiceTests
     public async Task Create_Should_ReturnBadRequestError_When_InvalidDatesProvided()
     {
         // Arrange
-        var title = "Invalid Event";
-        string? description = "Description";
+        const string title = "Invalid Event";
+        const string description = "Description";
         var startAt = DateTime.UtcNow.AddDays(2);
         var endAt = DateTime.UtcNow.AddDays(1); // End date before start date
 
@@ -323,7 +322,7 @@ public class EventServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
         result.Error.Message.Should().NotBeNullOrEmpty();
-        
+
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
 
@@ -331,8 +330,8 @@ public class EventServiceTests
     public async Task Create_Should_ReturnBadRequestError_When_TitleIsEmpty()
     {
         // Arrange
-        var title = "";
-        string? description = "Description";
+        const string title = "";
+        const string description = "Description";
         var startAt = DateTime.UtcNow.AddDays(1);
         var endAt = DateTime.UtcNow.AddDays(2);
 
@@ -342,7 +341,7 @@ public class EventServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
-        
+
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
 
@@ -360,16 +359,16 @@ public class EventServiceTests
 
         // Act
         var result = await _eventService.Change(
-            eventId, 
-            "Updated Title", 
-            "Updated Description", 
-            newStartAt, 
+            eventId,
+            "Updated Title",
+            "Updated Description",
+            newStartAt,
             newEndAt);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
-        
+
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
 
@@ -385,16 +384,16 @@ public class EventServiceTests
 
         // Act
         var result = await _eventService.Change(
-            eventId, 
+            eventId,
             "",
-            "Updated Description", 
-            DateTime.UtcNow.AddDays(1), 
+            "Updated Description",
+            DateTime.UtcNow.AddDays(1),
             DateTime.UtcNow.AddDays(2));
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
-        
+
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
 
@@ -403,7 +402,7 @@ public class EventServiceTests
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
-        
+
         _eventsRepository.Remove(nonExistentId, Arg.Any<CancellationToken>())
             .Returns(false);
 
@@ -414,7 +413,7 @@ public class EventServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorStatusCode.NotFound);
         result.Error.Message.Should().Be("Событие не найдено.");
-        
+
         await _eventsRepository.Received(1).Remove(nonExistentId, Arg.Any<CancellationToken>());
     }
 
@@ -422,7 +421,7 @@ public class EventServiceTests
     public async Task GetAll_Should_ReturnEmptyPaginatedResult_When_NoEventsMatchFilter()
     {
         // Arrange
-        var filter = new EventsFilter  (title: "NonExistentEvent");
+        var filter = new EventsFilter(title: "NonExistentEvent");
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedResult = new PaginatedResult<Event>(new List<Event>(), 0, 1);
 
@@ -443,16 +442,16 @@ public class EventServiceTests
     #region Helper Methods
 
     private Event CreateValidEvent(
-        Guid? id = null, 
-        string title = "Test Event", 
-        string? description = "Test Description", 
-        DateTime? startAt = null, 
+        Guid? id = null,
+        string title = "Test Event",
+        string? description = "Test Description",
+        DateTime? startAt = null,
         DateTime? endAt = null)
     {
         var eventId = id ?? Guid.NewGuid();
         var start = startAt ?? DateTime.UtcNow.AddDays(1);
         var end = endAt ?? DateTime.UtcNow.AddDays(2);
-        
+
         return Event.LoadFromStorage(eventId, title, description, start, end);
     }
 
