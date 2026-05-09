@@ -1,5 +1,6 @@
 ﻿using TicketNest.Application.Constants;
 using TicketNest.Application.Models;
+using TicketNest.Domain.Filters;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Repositories;
 using TicketNest.Shared.Objects;
@@ -8,7 +9,7 @@ namespace TicketNest.Application.Services.Events;
 
 internal sealed class EventService(IEventsRepository eventsRepository) : IEventService
 {
-    public Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default) => eventsRepository.GetAll(ct);
+    public Task<IReadOnlyCollection<Event>> GetAll(EventsFilter filter, CancellationToken ct = default) => eventsRepository.GetAll(filter, ct);
 
     public async Task<Event?> Get(Guid id, CancellationToken ct = default) => await eventsRepository.Get(id, ct);
 

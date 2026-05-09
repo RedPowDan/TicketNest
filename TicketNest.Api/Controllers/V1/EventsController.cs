@@ -4,6 +4,7 @@ using TicketNest.Api.Mappers.Events;
 using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Events;
 using TicketNest.Application.Services.Events;
+using TicketNest.Domain.Filters;
 
 namespace TicketNest.Api.Controllers.V1;
 
@@ -15,9 +16,11 @@ public class EventsController(IEventService eventService) : BaseApiController
     /// Получить список всех событий
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<ResultModel<EventResponse[]>>> Get(CancellationToken ct)
+    public async Task<ActionResult<ResultModel<EventResponse[]>>> Get(
+        [FromQuery] EventsFilterModel filter,
+        CancellationToken ct)
     {
-        var events = await eventService.GetAll(ct);
+        var events = await eventService.GetAll(EventsFilterMapper.Map(filter), ct);
         return Success(events.Select(EventResponseMapper.Map).ToArray());
     }
 

@@ -1,8 +1,11 @@
 ﻿using System.Collections.Concurrent;
+using TicketNest.DataAccess.Events.Filters;
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.DataAccess.Events.Models;
+using TicketNest.Domain.Filters;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Repositories;
+using TicketNest.Shared.Expressions;
 
 namespace TicketNest.DataAccess.Events.Implementations;
 
@@ -28,9 +31,18 @@ internal sealed class EventRepository : IEventsRepository
         return ValueTask.FromResult(persistenceEvent == null ? null : EventMapper.ToDomain(persistenceEvent));
     }
 
-    public Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default)
+    /// <inheritdoc />
+    public Task<IReadOnlyCollection<Event>> GetAll(EventsFilter filter, CancellationToken ct = default)
     {
-        return Task.FromResult<IReadOnlyCollection<Event>>(Events.Values.Select(EventMapper.ToDomain).ToArray());
+        var persistanceFilter = PersistenceEventsFilter.CreateFrom(filter);
+
+        var expression = persistanceFilter.GetFilterExpressions().CombineAnd();
+
+        return Task.FromResult<IReadOnlyCollection<Event>>(Events
+            .Values
+            .Where(expression.Compile())
+            .Select(EventMapper.ToDomain)
+            .ToArray());
     }
 
     public Task<bool> Remove(Guid id, CancellationToken ct = default)

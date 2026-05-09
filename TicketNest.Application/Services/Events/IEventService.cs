@@ -1,4 +1,5 @@
 ﻿using TicketNest.Application.Models;
+using TicketNest.Domain.Filters;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Shared.Objects;
 
@@ -6,7 +7,7 @@ namespace TicketNest.Application.Services.Events;
 
 public interface IEventService
 {
-    Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default);
+    Task<IReadOnlyCollection<Event>> GetAll(EventsFilter filter, CancellationToken ct = default);
 
     Task<Event?> Get(Guid id, CancellationToken ct = default);
 
