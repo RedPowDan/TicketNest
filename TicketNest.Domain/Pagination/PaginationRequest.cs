@@ -8,7 +8,7 @@ public class PaginationRequest
 
     public PaginationRequest(int page, int pageSize)
     {
-        Ensure.NonNegative(page, nameof(page));
+        Ensure.That(page >= 1, $"Номер страницы не должен быть меньше 1");
         Ensure.NonNegative(pageSize, nameof(pageSize));
 
         Page = page;

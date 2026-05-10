@@ -43,7 +43,7 @@ internal sealed class EventRepository : IEventsRepository
         var items = Events
             .Values
             .Where(expression.Compile())
-            .Skip(paginationRequest.Page * paginationRequest.PageSize)
+            .Skip((paginationRequest.Page - 1) * paginationRequest.PageSize)
             .Take(paginationRequest.PageSize)
             .Select(EventMapper.ToDomain)
             .ToArray();

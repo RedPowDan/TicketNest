@@ -5,7 +5,7 @@ namespace TicketNest.Api.Exceptions;
 
 public abstract class ApiException : Exception
 {
-    public string Message { get; }
+    public new string Message { get; }
 
     public ErrorCode ErrorCode { get; }
 
