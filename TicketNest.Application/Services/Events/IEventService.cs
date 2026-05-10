@@ -1,12 +1,15 @@
 ﻿using TicketNest.Application.Models;
+using TicketNest.Domain.Filters;
+using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Pagination;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.Application.Services.Events;
 
 public interface IEventService
 {
-    Task<IReadOnlyCollection<Event>> GetAll(CancellationToken ct = default);
+    Task<PaginatedResult<Event>> GetAll(EventsFilter filter, PaginationRequest paginationRequest, CancellationToken ct = default);
 
     Task<Event?> Get(Guid id, CancellationToken ct = default);
 

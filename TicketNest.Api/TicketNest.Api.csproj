@@ -9,7 +9,9 @@
     <ItemGroup>
         <PackageReference Include="Asp.Versioning.Abstractions"/>
         <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Newtonsoft.Json" />
         <PackageReference Include="Swashbuckle.AspNetCore"/>
     </ItemGroup>
 
