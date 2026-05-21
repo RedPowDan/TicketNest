@@ -8,6 +8,9 @@ public static class ServiceCollectionExtension
 {
     public static IServiceCollection AddEventDataAccess(this IServiceCollection services)
     {
-        return services.AddScoped<IEventsRepository, EventRepository>();
+        return services
+            .AddScoped<IEventsRepository, EventRepository>()
+            .AddScoped<IBookingRepository, BookingRepository>()
+            ;
     }
 }
