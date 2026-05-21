@@ -116,9 +116,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Создание бронирования на событие
     /// </summary>
     [HttpPost("{id:guid}/book")]
-    public async Task<ActionResult<ResultModel<BookingResponse>>> Book([FromBody] BookCreateRequest source, CancellationToken ct)
+    public async Task<ActionResult<ResultModel<BookingResponse>>> Book(Guid id, CancellationToken ct)
     {
-        var createResult = await bookingService.Create(source.EventId, ct);
+        var createResult = await bookingService.Create(id, ct);
         if (createResult.IsFailure)
         {
             ExceptionFactory.ThrowApiException(createResult.Error);

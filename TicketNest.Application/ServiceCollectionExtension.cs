@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
 using TicketNest.Domain.Factories.Bookings;
 
@@ -10,7 +11,9 @@ public static class ServiceCollectionExtension
     {
         return services
             .AddDomainServices()
-            .AddScoped<IEventService, EventService>();
+            .AddScoped<IEventService, EventService>()
+            .AddScoped<IBookingService, BookingService>()
+            ;
     }
 
     private static IServiceCollection AddDomainServices(this IServiceCollection services)
