@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using TicketNest.Application.Constants;
 using TicketNest.Application.Services.Events;
+using TicketNest.Domain.Constants;
 using TicketNest.Domain.Filters;
 using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Events;
@@ -300,7 +300,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.NotFound);
+        result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
         result.Error.Message.Should().Be("Не найдено событие");
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
@@ -320,7 +320,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
         result.Error.Message.Should().NotBeNullOrEmpty();
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
@@ -340,7 +340,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
@@ -367,7 +367,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
@@ -392,7 +392,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.BadRequest);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
@@ -411,7 +411,7 @@ public class EventServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorStatusCode.NotFound);
+        result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
         result.Error.Message.Should().Be("Событие не найдено.");
 
         await _eventsRepository.Received(1).Remove(nonExistentId, Arg.Any<CancellationToken>());

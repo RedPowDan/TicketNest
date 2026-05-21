@@ -1,9 +1,9 @@
-﻿namespace TicketNest.Application.Constants;
+﻿namespace TicketNest.Domain.Constants;
 
 /// <summary>
 /// Статус коды для ошибочных операций
 /// </summary>
-public enum ErrorStatusCode
+public enum ErrorCode
 {
     /// <summary>
     /// В ходе операции сущность не найдена.

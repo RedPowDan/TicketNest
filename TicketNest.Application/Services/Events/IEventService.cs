@@ -1,5 +1,4 @@
-﻿using TicketNest.Application.Models;
-using TicketNest.Domain.Filters;
+﻿using TicketNest.Domain.Filters;
 using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Events;
 using TicketNest.Domain.Pagination;
