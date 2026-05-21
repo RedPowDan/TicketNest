@@ -17,10 +17,10 @@ public class BookingConfirmationBackgroundService(
     {
         while (ct.IsCancellationRequested == false)
         {
-            using (var scope = serviceProvider.CreateScope())
+            try
             {
+                using var scope = serviceProvider.CreateScope();
                 var queueMessageRepository = scope.ServiceProvider.GetRequiredService<IQueueMessageRepository>();
-
                 var message = await queueMessageRepository.Get<BookingCreatedMessage>(queueName: QueueNames.BookingQueue, ct);
                 if (message == null)
                 {
@@ -40,6 +40,14 @@ public class BookingConfirmationBackgroundService(
                 await queueMessageRepository.Commit(message.MessageId, ct);
 
                 logger.LogTrace("Бронь с идентификатором {0} подтверждена", message.Data.BookingId);
+            }
+            catch (OperationCanceledException)
+            {
+                // ignore
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ошибка обработки сообщения подтверждения бронирования");
             }
         }
     }

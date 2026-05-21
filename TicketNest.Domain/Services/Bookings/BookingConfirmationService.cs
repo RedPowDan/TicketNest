@@ -20,8 +20,6 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
     /// </summary>
     private async Task ConfirmInTicketSystem(Booking booking, CancellationToken ct)
     {
-        var random = new Random(DateTime.Now.Millisecond);
-        var milliseconds = (int) Math.Abs(random.NextInt64()) % 10_000; // До 10 секунд
-        await Task.Delay(milliseconds, ct);
+        await Task.Delay(10_000, ct);
     }
 }
