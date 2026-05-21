@@ -1,17 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TicketNest.Api.Exceptions;
 using TicketNest.Api.Mappers;
+using TicketNest.Api.Mappers.Bookings;
 using TicketNest.Api.Mappers.Events;
 using TicketNest.Api.Models;
 using TicketNest.Api.Models.V1;
+using TicketNest.Api.Models.V1.Bookings;
 using TicketNest.Api.Models.V1.Events;
+using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
 
 namespace TicketNest.Api.Controllers.V1;
 
 [ApiController]
 [Route("[controller]")]
-public class EventsController(IEventService eventService) : BaseApiController
+public class EventsController(IEventService eventService, IBookingService bookingService) : BaseApiController
 {
     /// <summary>
     /// Получить список всех событий
@@ -107,5 +110,22 @@ public class EventsController(IEventService eventService) : BaseApiController
         }
 
         return Success();
+    }
+
+    /// <summary>
+    /// Создание бронирования на событие
+    /// </summary>
+    [HttpPost("{id:guid}/book")]
+    public async Task<ActionResult<ResultModel<BookingResponse>>> Book([FromBody] BookCreateRequest source, CancellationToken ct)
+    {
+        var createResult = await bookingService.Create(source.EventId, ct);
+        if (createResult.IsFailure)
+        {
+            ExceptionFactory.ThrowApiException(createResult.Error);
+        }
+
+        var booking = createResult.Value;
+        var locationUrl = Url.Action(nameof(BookingController.Get), "Booking", new { id = booking.Id }, Request.Scheme);
+        return Accepted(locationUrl!, BookingResponseMapper.Map(booking));
     }
 }
