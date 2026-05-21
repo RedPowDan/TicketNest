@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TicketNest.Application.BackgroundServices;
 using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
-using TicketNest.Domain.Factories.Bookings;
+using TicketNest.Domain.Services.Bookings;
 
 namespace TicketNest.Application;
 
@@ -10,9 +11,10 @@ public static class ServiceCollectionExtension
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddDomainServices()
-            .AddScoped<IEventService, EventService>()
-            .AddScoped<IBookingService, BookingService>()
+                .AddDomainServices()
+                .AddHostedServices()
+                .AddScoped<IEventService, EventService>()
+                .AddScoped<IBookingService, BookingService>()
             ;
     }
 
@@ -20,6 +22,14 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddScoped<IBookingFactory, BookingFactory>()
+                .AddScoped<IBookingConfirmationService, BookingConfirmationService>()
+            ;
+    }
+
+    private static IServiceCollection AddHostedServices(this IServiceCollection services)
+    {
+        return services
+                .AddHostedService<BookingConfirmationBackgroundService>()
             ;
     }
 }

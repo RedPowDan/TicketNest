@@ -2,7 +2,7 @@
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Shared.Objects;
 
-namespace TicketNest.Domain.Factories.Bookings;
+namespace TicketNest.Domain.Services.Bookings;
 
 public interface IBookingFactory
 {

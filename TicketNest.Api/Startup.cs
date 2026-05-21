@@ -3,6 +3,7 @@ using TicketNest.Api.Infrastructure;
 using TicketNest.Api.Middlewares;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
+using TicketNest.DataAccess.Queue;
 
 namespace TicketNest.Api;
 
@@ -25,6 +26,7 @@ public class Startup
         services.AddSwagger();
         services.AddApplicationServices();
         services.AddEventDataAccess();
+        services.AddQueueDataAccess();
         services.AddScoped<ExceptionHandlingMiddleware>();
 
         services

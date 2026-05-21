@@ -4,7 +4,7 @@ using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Repositories;
 using TicketNest.Shared.Objects;
 
-namespace TicketNest.Domain.Factories.Bookings;
+namespace TicketNest.Domain.Services.Bookings;
 
 public class BookingFactory(IEventsRepository eventsRepository) : IBookingFactory
 {
