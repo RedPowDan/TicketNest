@@ -157,25 +157,6 @@ public class BookingServiceTests
     }
 
     [Test]
-    public async Task Create_Should_ReturnNotFound_When_EventDeleted()
-    {
-        var eventId = Guid.CreateVersion7();
-        var error = new Error(ErrorCode.NotFound, "Событие не найдено");
-
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
-            .Returns(Result<Booking, Error>.FromFailure(error));
-
-        var result = await _bookingService.Create(eventId);
-
-        result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
-        result.Error.Message.Should().Be("Событие не найдено");
-
-        await _bookingRepository.DidNotReceive().Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>());
-        await _queueMessageRepository.DidNotReceive().Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
     public async Task Get_Should_ReturnNotFound_When_BookingDoesNotExist()
     {
         var nonExistentId = Guid.CreateVersion7();

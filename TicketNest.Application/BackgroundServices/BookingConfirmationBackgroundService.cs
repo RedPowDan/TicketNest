@@ -52,7 +52,7 @@ public class BookingConfirmationBackgroundService(
         }
     }
 
-    private async Task<UnitResult<string>> HandleMessage(
+    internal async Task<UnitResult<string>> HandleMessage(
         BookingCreatedMessage message,
         IBookingRepository bookingRepository,
         IBookingConfirmationService bookingConfirmationService,

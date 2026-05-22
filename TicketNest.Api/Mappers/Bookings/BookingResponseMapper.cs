@@ -11,5 +11,7 @@ internal static class BookingResponseMapper
             Id = source.Id,
             EventId = source.EventId,
             Status = BookingStatusMapper.Map(source.Status),
+            CreatedAt = source.CreatedAt,
+            ProcessedAt = source.ProcessedAt,
         };
 }
