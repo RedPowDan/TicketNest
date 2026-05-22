@@ -42,5 +42,6 @@ public class Booking
         Ensure.That(CreatedAt < processedAt, $"{nameof(processedAt)}={processedAt} не может быть меньше чем {nameof(CreatedAt)}={CreatedAt}");
 
         Status = BookingStatus.Confirmed;
+        ProcessedAt = processedAt;
     }
 }
