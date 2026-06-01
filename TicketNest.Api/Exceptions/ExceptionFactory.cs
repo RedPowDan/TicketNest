@@ -1,5 +1,5 @@
-﻿using TicketNest.Application.Constants;
-using TicketNest.Application.Models;
+﻿using TicketNest.Domain.Models;
+using DomainErrorCode = TicketNest.Domain.Constants.ErrorCode;
 
 namespace TicketNest.Api.Exceptions;
 
@@ -9,8 +9,8 @@ public static class ExceptionFactory
     {
         throw error.StatusCode switch
         {
-            ErrorStatusCode.NotFound => new NotFoundException(error.Message),
-            ErrorStatusCode.BadRequest => new BadRequestException(error.Message),
+            DomainErrorCode.NotFound => new NotFoundException(error.Message),
+            DomainErrorCode.BadRequest => new BadRequestException(error.Message),
             _ => new ArgumentOutOfRangeException()
         };
     }

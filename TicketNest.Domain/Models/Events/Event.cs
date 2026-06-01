@@ -45,7 +45,7 @@ public class Event
             return result.Error;
         }
 
-        return new Event(SequentialGuidFactory.Create(DateTime.UtcNow), title, description, startAt, endAt);
+        return new Event(Guid.CreateVersion7(), title, description, startAt, endAt);
     }
 
     private static UnitResult<string> CanCreate(string title, string? description, DateTime startAt, DateTime endAt)
