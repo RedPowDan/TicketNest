@@ -14,6 +14,8 @@ public static class EventResponseMapper
             Description = source.Description,
             EndAt = source.EndAt,
             StartAt = source.StartAt,
+            TotalSeats = source.TotalSeats,
+            AvailableSeats = source.AvailableSeats,
         };
     }
 }

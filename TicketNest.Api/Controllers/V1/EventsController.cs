@@ -67,6 +67,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
             source.Description,
             source.StartAt,
             source.EndAt,
+            source.TotalSeats,
             ct);
         if (createResult.IsFailure)
         {

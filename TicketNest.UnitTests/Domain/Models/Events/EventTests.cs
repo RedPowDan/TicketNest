@@ -17,7 +17,7 @@ public class EventTests
         var endAt = new DateTime(2024, 12, 25, 22, 0, 0);
 
         // Act
-        var eventEntity = Event.LoadFromStorage(eventId, eventTitle, eventDescription, startAt, endAt);
+        var eventEntity = Event.LoadFromStorage(eventId, eventTitle, eventDescription, startAt, endAt, totalSeats: 100, availableSeats: 100);
 
         // Assert
         eventEntity.Id.Should().Be(eventId);
@@ -25,6 +25,8 @@ public class EventTests
         eventEntity.Description.Should().Be(eventDescription);
         eventEntity.StartAt.Should().Be(startAt);
         eventEntity.EndAt.Should().Be(endAt);
+        eventEntity.TotalSeats.Should().Be(100);
+        eventEntity.AvailableSeats.Should().Be(100);
     }
 
     [Test]
@@ -37,7 +39,7 @@ public class EventTests
         var endAt = new DateTime(2024, 12, 25, 22, 0, 0);
 
         // Act
-        var eventEntity = Event.LoadFromStorage(eventId, eventTitle, null, startAt, endAt);
+        var eventEntity = Event.LoadFromStorage(eventId, eventTitle, null, startAt, endAt, totalSeats: 100, availableSeats: 100);
 
         // Assert
         eventEntity.Description.Should().BeNull();
@@ -53,7 +55,7 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(2);
 
         // Act
-        var result = Event.Create(title, description, startAt, endAt);
+        var result = Event.Create(title, description, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -62,6 +64,8 @@ public class EventTests
         result.Value.Description.Should().Be(description);
         result.Value.StartAt.Should().Be(startAt);
         result.Value.EndAt.Should().Be(endAt);
+        result.Value.TotalSeats.Should().Be(100);
+        result.Value.AvailableSeats.Should().Be(100);
     }
 
     [Test]
@@ -73,7 +77,7 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(2);
 
         // Act
-        var result = Event.Create(title, null, startAt, endAt);
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -88,7 +92,7 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(2);
 
         // Act
-        var result = Event.Create(null!, null, startAt, endAt);
+        var result = Event.Create(null!, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -104,7 +108,7 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(2);
 
         // Act
-        var result = Event.Create(title, null, startAt, endAt);
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -120,7 +124,7 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(1);
 
         // Act
-        var result = Event.Create(title, null, startAt, endAt);
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -136,8 +140,8 @@ public class EventTests
         var endAt = DateTime.Now.AddDays(2);
 
         // Act
-        var result1 = Event.Create(title, null, startAt, endAt);
-        var result2 = Event.Create(title, null, startAt, endAt);
+        var result1 = Event.Create(title, null, startAt, endAt, totalSeats: 100);
+        var result2 = Event.Create(title, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result1.Value.Id.Should().NotBe(result2.Value.Id);
@@ -231,8 +235,7 @@ public class EventTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be("Начало события не может быть значением по умолчанию");
-        
-        // Verify dates unchanged
+
         eventEntity.StartAt.Should().NotBe(newStartAt);
     }
 
@@ -252,8 +255,7 @@ public class EventTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be("Начало события не может быть больше чем его окончание");
-        
-        // Verify dates unchanged
+
         eventEntity.StartAt.Should().Be(originalStartAt);
         eventEntity.EndAt.Should().Be(originalEndAt);
     }
@@ -304,7 +306,7 @@ public class EventTests
         var sameDateTime = DateTime.Now.AddDays(1);
 
         // Act
-        var result = Event.Create(title, null, sameDateTime, sameDateTime);
+        var result = Event.Create(title, null, sameDateTime, sameDateTime, totalSeats: 100);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -321,12 +323,103 @@ public class EventTests
         var endAt = startAt.AddHours(1);
 
         // Act
-        var result = Event.Create(title, null, startAt, endAt);
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 100);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.StartAt.Should().Be(startAt);
         result.Value.EndAt.Should().Be(endAt);
+    }
+
+    [Test]
+    public void TryReserveSeats_should_reduce_available_seats()
+    {
+        // Arrange
+        var eventEntity = CreateValidEvent();
+
+        // Act
+        var success = eventEntity.TryReserveSeats(3);
+
+        // Assert
+        success.Should().BeTrue();
+        eventEntity.AvailableSeats.Should().Be(7);
+    }
+
+    [Test]
+    public void TryReserveSeats_should_return_false_when_not_enough_seats()
+    {
+        // Arrange
+        var eventEntity = CreateValidEvent();
+
+        // Act
+        var success = eventEntity.TryReserveSeats(20);
+
+        // Assert
+        success.Should().BeFalse();
+        eventEntity.AvailableSeats.Should().Be(10);
+    }
+
+    [Test]
+    public void ReleaseSeats_should_increase_available_seats()
+    {
+        // Arrange
+        var eventEntity = Event.LoadFromStorage(
+            id: Guid.NewGuid(), title: "Test", description: null,
+            startAt: DateTime.Now.AddDays(1), endAt: DateTime.Now.AddDays(2),
+            totalSeats: 100, availableSeats: 7);
+
+        // Act
+        var success = eventEntity.ReleaseSeats(3);
+
+        // Assert
+        success.Should().BeTrue();
+        eventEntity.AvailableSeats.Should().Be(10);
+    }
+
+    [Test]
+    public void ReleaseSeats_should_not_exceed_total_seats()
+    {
+        // Arrange
+        var eventEntity = CreateValidEvent();
+
+        // Act
+        var success = eventEntity.ReleaseSeats(1);
+
+        // Assert
+        success.Should().BeFalse();
+        eventEntity.AvailableSeats.Should().Be(10);
+    }
+
+    [Test]
+    public void Create_should_return_failure_when_totalSeats_is_zero()
+    {
+        // Arrange
+        var title = "Valid Event";
+        var startAt = DateTime.Now.AddDays(1);
+        var endAt = DateTime.Now.AddDays(2);
+
+        // Act
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 0);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be("Количество мест не должно быть меньше нуля");
+    }
+
+    [Test]
+    public void Create_should_return_failure_when_totalSeats_is_negative()
+    {
+        // Arrange
+        var title = "Valid Event";
+        var startAt = DateTime.Now.AddDays(1);
+        var endAt = DateTime.Now.AddDays(2);
+
+        // Act
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: -1);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be("Количество мест не должно быть меньше нуля");
     }
 
     // Helper methods
@@ -335,8 +428,8 @@ public class EventTests
         var title = "Test Event";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
-        
-        var result = Event.Create(title, null, startAt, endAt);
+
+        var result = Event.Create(title, null, startAt, endAt, totalSeats: 10);
         return result.Value;
     }
 
@@ -346,8 +439,8 @@ public class EventTests
         var description = "Test Description";
         var startAt = DateTime.Now.AddDays(1);
         var endAt = DateTime.Now.AddDays(2);
-        
-        var result = Event.Create(title, description, startAt, endAt);
+
+        var result = Event.Create(title, description, startAt, endAt, totalSeats: 10);
         return result.Value;
     }
 }
