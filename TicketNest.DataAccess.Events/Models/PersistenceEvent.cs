@@ -11,4 +11,8 @@ internal sealed class PersistenceEvent
     public DateTime StartAt { get; init; }
 
     public DateTime EndAt { get; init; }
+
+    public int TotalSeats { get; init; }
+
+    public int AvailableSeats { get; init; }
 }

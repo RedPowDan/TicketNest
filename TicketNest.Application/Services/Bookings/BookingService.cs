@@ -12,8 +12,11 @@ namespace TicketNest.Application.Services.Bookings;
 internal sealed class BookingService(
     IBookingFactory bookingFactory,
     IBookingRepository bookingRepository,
-    IQueueMessageRepository queueMessageRepository) : IBookingService
+    IQueueMessageRepository queueMessageRepository,
+    IEventsRepository eventsRepository) : IBookingService
 {
+    private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
+
     public async Task<Result<Booking, Error>> Create(Guid eventId, CancellationToken ct = default)
     {
         var bookingCreateResult = await bookingFactory.Create(eventId, ct);
@@ -23,8 +26,29 @@ internal sealed class BookingService(
         }
 
         var booking = bookingCreateResult.Value;
-        await bookingRepository.Save(booking, ct);
-        await queueMessageRepository.Create(CreateMessage(booking.Id), ct);
+
+        await SemaphoreSlim.WaitAsync(ct);
+        try
+        {
+            var @event = await eventsRepository.Get(eventId, ct);
+            if (@event is null)
+            {
+                return new Error(message: "Событие не найдено", statusCode: ErrorCode.NotFound);
+            }
+
+            if (!@event.TryReserveSeats())
+            {
+                return new Error(message: "No available seats for this event", statusCode: ErrorCode.Conflict);
+            }
+
+            await bookingRepository.Save(booking, ct);
+            await eventsRepository.Save(@event, ct);
+            await queueMessageRepository.Create(CreateMessage(booking.Id), ct);
+        }
+        finally
+        {
+            SemaphoreSlim.Release();
+        }
 
         return booking;
     }

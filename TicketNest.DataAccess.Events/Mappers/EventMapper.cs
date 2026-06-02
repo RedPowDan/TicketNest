@@ -13,7 +13,9 @@ internal static class EventMapper
             title: source.Title,
             description: source.Description,
             startAt: source.StartAt,
-            endAt: source.EndAt);
+            endAt: source.EndAt,
+            totalSeats: source.TotalSeats,
+            availableSeats: source.AvailableSeats);
     }
 
     public static PersistenceEvent ToPersistence(Event source)
@@ -27,6 +29,8 @@ internal static class EventMapper
             Description = source.Description,
             EndAt = source.EndAt,
             StartAt = source.StartAt,
+            TotalSeats = source.TotalSeats,
+            AvailableSeats = source.AvailableSeats,
         };
     }
 }
