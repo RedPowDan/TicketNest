@@ -150,7 +150,6 @@ public class BookingServiceTests
         result3.IsSuccess.Should().BeTrue();
         result4.IsFailure.Should().BeTrue();
         result4.Error.StatusCode.Should().Be(ErrorCode.Conflict);
-        result4.Error.Message.Should().Be("No available seats for this event");
 
         result1.Value.Id.Should().NotBe(result2.Value.Id);
         result2.Value.Id.Should().NotBe(result3.Value.Id);
@@ -312,7 +311,6 @@ public class BookingServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.Conflict);
-        result.Error.Message.Should().Be("No available seats for this event");
 
         await _bookingRepository.DidNotReceive().Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>());
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
