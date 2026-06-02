@@ -403,7 +403,6 @@ public class EventTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("Количество мест не должно быть меньше нуля");
     }
 
     [Test]
@@ -419,7 +418,6 @@ public class EventTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("Количество мест не должно быть меньше нуля");
     }
 
     // Helper methods

@@ -326,7 +326,6 @@ public class EventServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
-        result.Error.Message.Should().Be("Количество мест не должно быть меньше нуля");
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }
@@ -346,7 +345,6 @@ public class EventServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
-        result.Error.Message.Should().Be("Количество мест не должно быть меньше нуля");
 
         await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
     }

@@ -94,7 +94,7 @@ public class Event
 
         if (totalSeats <= 0)
         {
-            return "Количество мест не должно быть меньше нуля";
+            return "Количество мест должно быть больше нуля";
         }
 
         return UnitResult<string>.FromSuccess();

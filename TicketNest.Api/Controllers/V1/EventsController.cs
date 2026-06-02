@@ -14,12 +14,14 @@ namespace TicketNest.Api.Controllers.V1;
 
 [ApiController]
 [Route("[controller]")]
+[ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status500InternalServerError)]
 public class EventsController(IEventService eventService, IBookingService bookingService) : BaseApiController
 {
     /// <summary>
     /// Получить список всех событий
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(ResultModel<PaginatedResultModel<EventResponse>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResultModel<PaginatedResultModel<EventResponse>>>> Get(
         [FromQuery] EventsFilterModel filter,
         [FromQuery] PaginationRequestModel pagination,
@@ -45,6 +47,8 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Получить событие по идентификатору
     /// </summary>
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ResultModel<EventResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<EventResponse>>> Get(Guid id, CancellationToken ct)
     {
         var @event = await eventService.Get(id, ct);
@@ -60,6 +64,8 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Создать событие
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(ResultModel<EventResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ResultModel<EventResponse>>> Post([FromBody] EventRequest source, CancellationToken ct)
     {
         var createResult = await eventService.Create(
@@ -81,6 +87,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Изменить событие
     /// </summary>
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Put(Guid id, [FromBody] EventRequest source, CancellationToken ct)
     {
         var changeResult = await eventService.Change(
@@ -102,6 +111,8 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Удалить событие
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Delete(Guid id, CancellationToken ct)
     {
         var deleteResult = await eventService.Delete(id, ct);
@@ -117,6 +128,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Создание бронирования на событие
     /// </summary>
     [HttpPost("{id:guid}/book")]
+    [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Book(Guid id, CancellationToken ct)
     {
         var createResult = await bookingService.Create(id, ct);
