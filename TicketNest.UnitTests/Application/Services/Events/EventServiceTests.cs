@@ -28,7 +28,6 @@ public class EventServiceTests
     [Test]
     public async Task Create_Should_ReturnSuccess_When_ValidDataProvided()
     {
-        // Arrange
         const string title = "Valid Event Title";
         const string description = "Valid Description";
         var startAt = DateTime.UtcNow.AddDays(1);
@@ -37,16 +36,16 @@ public class EventServiceTests
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        // Act
-        var result = await _eventService.Create(title, description, startAt, endAt);
+        var result = await _eventService.Create(title, description, startAt, endAt, totalSeats: 100);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.Title.Should().Be(title);
         result.Value.Description.Should().Be(description);
         result.Value.StartAt.Should().Be(startAt);
         result.Value.EndAt.Should().Be(endAt);
+        result.Value.TotalSeats.Should().Be(100);
+        result.Value.AvailableSeats.Should().Be(100);
 
         await _eventsRepository.Received(1).Save(Arg.Is<Event>(e =>
             e.Title == title &&
@@ -58,7 +57,6 @@ public class EventServiceTests
     [Test]
     public async Task GetAll_Should_ReturnPaginatedEvents_When_FilterAndPaginationProvided()
     {
-        // Arrange
         var filter = new EventsFilter();
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedEvents = new List<Event>
@@ -71,10 +69,8 @@ public class EventServiceTests
         _eventsRepository.GetAll(filter, paginationRequest, Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
-        // Act
         var result = await _eventService.GetAll(filter, paginationRequest);
 
-        // Assert
         result.Should().NotBeNull();
         result.Items.Should().BeEquivalentTo(expectedResult.Items);
         result.TotalCount.Should().Be(expectedResult.TotalCount);
@@ -87,17 +83,14 @@ public class EventServiceTests
     [Test]
     public async Task Get_Should_ReturnEvent_When_ValidIdProvided()
     {
-        // Arrange
         var eventId = Guid.NewGuid();
         var expectedEvent = CreateValidEvent();
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(expectedEvent);
 
-        // Act
         var result = await _eventService.Get(eventId);
 
-        // Assert
         result.Should().NotBeNull();
         result.Id.Should().Be(expectedEvent.Id);
         result.Title.Should().Be(expectedEvent.Title);
@@ -108,7 +101,6 @@ public class EventServiceTests
     [Test]
     public async Task Change_Should_UpdateSuccessfully_When_ValidDataProvided()
     {
-        // Arrange
         var eventId = Guid.NewGuid();
         var existingEvent = CreateValidEvent(eventId);
         const string newTitle = "Updated Title";
@@ -122,10 +114,8 @@ public class EventServiceTests
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        // Act
         var result = await _eventService.Change(eventId, newTitle, newDescription, newStartAt, newEndAt);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
 
         await _eventsRepository.Received(1).Save(Arg.Is<Event>(e =>
@@ -139,16 +129,13 @@ public class EventServiceTests
     [Test]
     public async Task Delete_Should_RemoveSuccessfully_When_ValidIdProvided()
     {
-        // Arrange
         var eventId = Guid.NewGuid();
 
         _eventsRepository.Remove(eventId, Arg.Any<CancellationToken>())
             .Returns(true);
 
-        // Act
         var result = await _eventService.Delete(eventId);
 
-        // Assert
         result.IsSuccess.Should().BeTrue();
 
         await _eventsRepository.Received(1).Remove(eventId, Arg.Any<CancellationToken>());
@@ -157,7 +144,6 @@ public class EventServiceTests
     [Test]
     public async Task GetAll_Should_FilterByTitle_When_TitleProvided()
     {
-        // Arrange
         var filter = new EventsFilter(title: "Conference");
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedEvents = new List<Event>
@@ -170,10 +156,8 @@ public class EventServiceTests
         _eventsRepository.GetAll(filter, paginationRequest, Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
-        // Act
         var result = await _eventService.GetAll(filter, paginationRequest);
 
-        // Assert
         result.Should().NotBeNull();
         result.Items.Should().AllSatisfy(e => e.Title.Should().Contain("Conference"));
 
@@ -186,7 +170,6 @@ public class EventServiceTests
     [Test]
     public async Task GetAll_Should_FilterByDateRange_When_StartDateAndEndDateProvided()
     {
-        // Arrange
         var startDate = DateTime.UtcNow.AddDays(1);
         var endDate = DateTime.UtcNow.AddDays(30);
         var filter = new EventsFilter(from: startDate, to: endDate);
@@ -201,10 +184,8 @@ public class EventServiceTests
         _eventsRepository.GetAll(filter, paginationRequest, Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
-        // Act
         var result = await _eventService.GetAll(filter, paginationRequest);
 
-        // Assert
         result.Should().NotBeNull();
         result.Items.Should().AllSatisfy(e =>
         {
@@ -221,7 +202,6 @@ public class EventServiceTests
     [Test]
     public async Task GetAll_Should_ApplyCombinedFilters_When_MultipleFiltersProvided()
     {
-        // Arrange
         var startDate = DateTime.UtcNow.AddDays(1);
         var endDate = DateTime.UtcNow.AddDays(30);
         var filter = new EventsFilter
@@ -243,10 +223,8 @@ public class EventServiceTests
         _eventsRepository.GetAll(filter, paginationRequest, Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
-        // Act
         var result = await _eventService.GetAll(filter, paginationRequest);
 
-        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(1);
         result.Items.First().Title.Should().Contain("Workshop");
@@ -266,16 +244,13 @@ public class EventServiceTests
     [Test]
     public async Task Get_Should_ReturnNull_When_EventNotFound()
     {
-        // Arrange
         var nonExistentId = Guid.NewGuid();
 
         _eventsRepository.Get(nonExistentId, Arg.Any<CancellationToken>())
             .Returns((Event?) null);
 
-        // Act
         var result = await _eventService.Get(nonExistentId);
 
-        // Assert
         result.Should().BeNull();
 
         await _eventsRepository.Received(1).Get(nonExistentId, Arg.Any<CancellationToken>());
@@ -284,13 +259,11 @@ public class EventServiceTests
     [Test]
     public async Task Change_Should_ReturnNotFoundError_When_EventDoesNotExist()
     {
-        // Arrange
         var nonExistentId = Guid.NewGuid();
 
         _eventsRepository.Get(nonExistentId, Arg.Any<CancellationToken>())
             .Returns((Event?) null);
 
-        // Act
         var result = await _eventService.Change(
             nonExistentId,
             "New Title",
@@ -298,7 +271,6 @@ public class EventServiceTests
             DateTime.UtcNow.AddDays(1),
             DateTime.UtcNow.AddDays(2));
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
         result.Error.Message.Should().Be("Не найдено событие");
@@ -309,16 +281,13 @@ public class EventServiceTests
     [Test]
     public async Task Create_Should_ReturnBadRequestError_When_InvalidDatesProvided()
     {
-        // Arrange
         const string title = "Invalid Event";
         const string description = "Description";
         var startAt = DateTime.UtcNow.AddDays(2);
-        var endAt = DateTime.UtcNow.AddDays(1); // End date before start date
+        var endAt = DateTime.UtcNow.AddDays(1);
 
-        // Act
-        var result = await _eventService.Create(title, description, startAt, endAt);
+        var result = await _eventService.Create(title, description, startAt, endAt, totalSeats: 100);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
         result.Error.Message.Should().NotBeNullOrEmpty();
@@ -329,14 +298,49 @@ public class EventServiceTests
     [Test]
     public async Task Create_Should_ReturnBadRequestError_When_TitleIsEmpty()
     {
-        // Arrange
         const string title = "";
         const string description = "Description";
         var startAt = DateTime.UtcNow.AddDays(1);
         var endAt = DateTime.UtcNow.AddDays(2);
 
+        var result = await _eventService.Create(title, description, startAt, endAt, totalSeats: 100);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
+
+        await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Should_ReturnBadRequestError_When_TotalSeatsIsZero()
+    {
+        // Arrange
+        const string title = "Valid Event";
+        const string description = "Description";
+        var startAt = DateTime.UtcNow.AddDays(1);
+        var endAt = DateTime.UtcNow.AddDays(2);
+
         // Act
-        var result = await _eventService.Create(title, description, startAt, endAt);
+        var result = await _eventService.Create(title, description, startAt, endAt, totalSeats: 0);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
+
+        await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Should_ReturnBadRequestError_When_TotalSeatsIsNegative()
+    {
+        // Arrange
+        const string title = "Valid Event";
+        const string description = "Description";
+        var startAt = DateTime.UtcNow.AddDays(1);
+        var endAt = DateTime.UtcNow.AddDays(2);
+
+        // Act
+        var result = await _eventService.Create(title, description, startAt, endAt, totalSeats: -1);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -348,16 +352,14 @@ public class EventServiceTests
     [Test]
     public async Task Change_Should_ReturnBadRequestError_When_EndDateIsBeforeStartDate()
     {
-        // Arrange
         var eventId = Guid.NewGuid();
         var existingEvent = CreateValidEvent(eventId);
         var newStartAt = DateTime.UtcNow.AddDays(5);
-        var newEndAt = DateTime.UtcNow.AddDays(3); // End date before start date
+        var newEndAt = DateTime.UtcNow.AddDays(3);
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(existingEvent);
 
-        // Act
         var result = await _eventService.Change(
             eventId,
             "Updated Title",
@@ -365,7 +367,6 @@ public class EventServiceTests
             newStartAt,
             newEndAt);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
 
@@ -375,14 +376,12 @@ public class EventServiceTests
     [Test]
     public async Task Change_Should_ReturnBadRequestError_When_TitleIsEmpty()
     {
-        // Arrange
         var eventId = Guid.NewGuid();
         var existingEvent = CreateValidEvent(eventId);
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(existingEvent);
 
-        // Act
         var result = await _eventService.Change(
             eventId,
             "",
@@ -390,7 +389,6 @@ public class EventServiceTests
             DateTime.UtcNow.AddDays(1),
             DateTime.UtcNow.AddDays(2));
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
 
@@ -400,16 +398,13 @@ public class EventServiceTests
     [Test]
     public async Task Delete_Should_ReturnNotFoundError_When_EventDoesNotExist()
     {
-        // Arrange
         var nonExistentId = Guid.NewGuid();
 
         _eventsRepository.Remove(nonExistentId, Arg.Any<CancellationToken>())
             .Returns(false);
 
-        // Act
         var result = await _eventService.Delete(nonExistentId);
 
-        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
         result.Error.Message.Should().Be("Событие не найдено.");
@@ -420,7 +415,6 @@ public class EventServiceTests
     [Test]
     public async Task GetAll_Should_ReturnEmptyPaginatedResult_When_NoEventsMatchFilter()
     {
-        // Arrange
         var filter = new EventsFilter(title: "NonExistentEvent");
         var paginationRequest = new PaginationRequest(page: 1, pageSize: 10);
         var expectedResult = new PaginatedResult<Event>(new List<Event>(), 0, 1);
@@ -428,10 +422,8 @@ public class EventServiceTests
         _eventsRepository.GetAll(filter, paginationRequest, Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
-        // Act
         var result = await _eventService.GetAll(filter, paginationRequest);
 
-        // Assert
         result.Should().NotBeNull();
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
@@ -452,7 +444,7 @@ public class EventServiceTests
         var start = startAt ?? DateTime.UtcNow.AddDays(1);
         var end = endAt ?? DateTime.UtcNow.AddDays(2);
 
-        return Event.LoadFromStorage(eventId, title, description, start, end);
+        return Event.LoadFromStorage(eventId, title, description, start, end, totalSeats: 100, availableSeats: 100);
     }
 
     #endregion

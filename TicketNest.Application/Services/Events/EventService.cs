@@ -20,9 +20,10 @@ internal sealed class EventService(IEventsRepository eventsRepository) : IEventS
         string? description,
         DateTime startAt,
         DateTime endAt,
+        int totalSeats,
         CancellationToken ct = default)
     {
-        var eventCreateResult = Event.Create(title, description, startAt, endAt);
+        var eventCreateResult = Event.Create(title, description, startAt, endAt, totalSeats);
         if (eventCreateResult.IsFailure)
         {
             return new Error(ErrorCode.BadRequest, eventCreateResult.Error);

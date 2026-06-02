@@ -23,4 +23,9 @@ public class EventRequest
     /// Дата окончания события
     /// </summary>
     [Required] public DateTime EndAt { get; init; }
+
+    /// <summary>
+    /// Общее количество мест на событии
+    /// </summary>
+    [Required] public int TotalSeats { get; init; }
 }

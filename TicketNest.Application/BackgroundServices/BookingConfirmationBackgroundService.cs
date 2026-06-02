@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TicketNest.Domain.Constants;
+using TicketNest.Domain.Models.Queue;
 using TicketNest.Domain.Models.Queue.QueueMessageModels;
 using TicketNest.Domain.Repositories;
 using TicketNest.Domain.Services.Bookings;
-using TicketNest.Shared.Objects;
 
 namespace TicketNest.Application.BackgroundServices;
 
@@ -21,25 +21,18 @@ public class BookingConfirmationBackgroundService(
             {
                 using var scope = serviceProvider.CreateScope();
                 var queueMessageRepository = scope.ServiceProvider.GetRequiredService<IQueueMessageRepository>();
-                var message = await queueMessageRepository.Get<BookingCreatedMessage>(queueName: QueueNames.BookingQueue, ct);
-                if (message == null)
+                var messages = await queueMessageRepository.GetAll<BookingCreatedMessage>(queueName: QueueNames.BookingQueue, ct);
+                if (!messages.Any())
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), ct);
                     continue;
                 }
 
-                var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
                 var bookingConfirmationService = scope.ServiceProvider.GetRequiredService<IBookingConfirmationService>();
-                var result = await HandleMessage(message.Data, bookingRepository, bookingConfirmationService, ct);
-                if (result.IsFailure)
-                {
-                    logger.LogError(result.Error);
-                    continue;
-                }
 
-                await queueMessageRepository.Commit(message.MessageId, ct);
+                var tasks = messages.Select(message => HandleMessage(message, bookingConfirmationService, queueMessageRepository, ct));
 
-                logger.LogTrace("Бронь с идентификатором {0} подтверждена", message.Data.BookingId);
+                await Task.WhenAll(tasks);
             }
             catch (OperationCanceledException)
             {
@@ -52,26 +45,21 @@ public class BookingConfirmationBackgroundService(
         }
     }
 
-    internal async Task<UnitResult<string>> HandleMessage(
-        BookingCreatedMessage message,
-        IBookingRepository bookingRepository,
+    internal async Task HandleMessage(
+        QueueMessage<BookingCreatedMessage> message,
         IBookingConfirmationService bookingConfirmationService,
+        IQueueMessageRepository queueMessageRepository,
         CancellationToken ct)
     {
-        var booking = await bookingRepository.Get(message.BookingId, ct);
-        if (booking == null)
-        {
-            return $"Бронь с идентификатором {message.BookingId} не найдена";
-        }
-
-        var confirmationResult = await bookingConfirmationService.Confirm(booking, ct);
+        var confirmationResult = await bookingConfirmationService.Confirm(message.Data.BookingId, ct);
         if (confirmationResult.IsFailure)
         {
-            return confirmationResult.Error.Message;
+            logger.LogError("Ошибка подтверждения брони: {Message}", confirmationResult.Error.Message);
+            return;
         }
 
-        await bookingRepository.Save(booking, ct);
+        await queueMessageRepository.Commit(message.MessageId, ct);
 
-        return UnitResult<string>.FromSuccess();
+        logger.LogTrace("Бронь с идентификатором {BookingId} подтверждена", message.Data.BookingId);
     }
 }

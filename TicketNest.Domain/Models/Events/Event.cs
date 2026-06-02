@@ -15,40 +15,62 @@ public class Event
 
     public DateTime EndAt { get; private set; }
 
-    private Event(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
+    public int TotalSeats { get; private set; }
+
+    public int AvailableSeats { get; private set; }
+
+    private Event(
+        Guid id,
+        string title,
+        string? description,
+        DateTime startAt,
+        DateTime endAt,
+        int totalSeats,
+        int availableSeats)
     {
         Ensure.NotNullOrEmpty(title, nameof(title));
         if (description != null)
         {
             Ensure.NotNullOrEmpty(description, nameof(description));
         }
+
         Ensure.NotNull(title, nameof(title));
         Ensure.NotDefault(startAt, nameof(startAt));
         Ensure.NotDefault(endAt, nameof(endAt));
+        Ensure.NonNegative(totalSeats, nameof(totalSeats));
 
         Id = id;
         Title = title;
         Description = description;
         StartAt = startAt;
         EndAt = endAt;
+        TotalSeats = totalSeats;
+        AvailableSeats = availableSeats;
     }
 
-    public static Event LoadFromStorage(Guid id, string title, string? description, DateTime startAt, DateTime endAt)
+    public static Event LoadFromStorage(
+        Guid id,
+        string title,
+        string? description,
+        DateTime startAt,
+        DateTime endAt,
+        int totalSeats,
+        int availableSeats)
     {
-        return new Event(id, title, description, startAt, endAt);
+        return new Event(id, title, description, startAt, endAt, totalSeats, availableSeats);
     }
 
-    public static Result<Event, string> Create(string title, string? description, DateTime startAt, DateTime endAt)
+    public static Result<Event, string> Create(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
     {
-        if (CanCreate(title, description, startAt, endAt) is { IsFailure: true } result)
+        if (CanCreate(title, description, startAt, endAt, totalSeats) is { IsFailure: true } result)
         {
             return result.Error;
         }
 
-        return new Event(Guid.CreateVersion7(), title, description, startAt, endAt);
+        return new Event(Guid.CreateVersion7(), title, description, startAt, endAt, totalSeats, availableSeats: totalSeats);
     }
 
-    private static UnitResult<string> CanCreate(string title, string? description, DateTime startAt, DateTime endAt)
+    private static UnitResult<string> CanCreate(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -68,6 +90,11 @@ public class Event
         if (startAt > endAt)
         {
             return "Начало события не может быть больше чем его окончание";
+        }
+
+        if (totalSeats <= 0)
+        {
+            return "Количество мест должно быть больше нуля";
         }
 
         return UnitResult<string>.FromSuccess();
@@ -113,5 +140,33 @@ public class Event
         EndAt = endAt;
 
         return UnitResult<string>.FromSuccess();
+    }
+
+    public bool TryReserveSeats(int count = 1)
+    {
+        Ensure.NonNegative(count, nameof(count));
+
+        if (count > AvailableSeats)
+        {
+            return false;
+        }
+
+        AvailableSeats -= count;
+
+        return true;
+    }
+    
+    public bool ReleaseSeats(int count = 1)
+    {
+        Ensure.NonNegative(count, nameof(count));
+
+        if (count + AvailableSeats > TotalSeats)
+        {
+            return false;
+        }
+
+        AvailableSeats += count;
+
+        return true;
     }
 }

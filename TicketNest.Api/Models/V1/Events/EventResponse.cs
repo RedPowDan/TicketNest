@@ -32,4 +32,16 @@ public class EventResponse
     /// </summary>
     [Required]
     public DateTime EndAt { get; init; }
+
+    /// <summary>
+    /// Общее количество мест на событии
+    /// </summary>
+    [Required]
+    public int TotalSeats { get; init; }
+    
+    /// <summary>
+    /// Доступное количество мест на событии
+    /// </summary>
+    [Required]
+    public int AvailableSeats { get; init; }
 }

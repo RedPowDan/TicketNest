@@ -44,4 +44,13 @@ public class Booking
         Status = BookingStatus.Confirmed;
         ProcessedAt = processedAt;
     }
+
+    public void Reject(DateTime processedAt)
+    {
+        Ensure.That(processedAt.Kind == DateTimeKind.Utc, "CreatedAt должен иметь временную зону UTC");
+        Ensure.That(CreatedAt < processedAt, $"{nameof(processedAt)}={processedAt} не может быть меньше чем {nameof(CreatedAt)}={CreatedAt}");
+
+        Status = BookingStatus.Rejected;
+        ProcessedAt = processedAt;
+    }
 }

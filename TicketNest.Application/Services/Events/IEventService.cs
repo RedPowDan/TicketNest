@@ -17,6 +17,7 @@ public interface IEventService
         string? description,
         DateTime startAt,
         DateTime endAt,
+        int totalSeats,
         CancellationToken ct = default);
 
     Task<UnitResult<Error>> Change(

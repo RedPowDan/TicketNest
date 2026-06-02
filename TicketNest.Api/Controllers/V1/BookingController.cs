@@ -9,12 +9,15 @@ namespace TicketNest.Api.Controllers.V1;
 
 [ApiController]
 [Route("[controller]")]
+[ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status500InternalServerError)]
 public class BookingController(IBookingService bookingService) : BaseApiController
 {
     /// <summary>
     /// Получить бронирование по идентификатору
     /// </summary>
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Get(Guid id, CancellationToken ct = default)
     {
         var bookingResult = await bookingService.Get(id, ct);

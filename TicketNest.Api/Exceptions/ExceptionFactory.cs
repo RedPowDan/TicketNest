@@ -11,6 +11,7 @@ public static class ExceptionFactory
         {
             DomainErrorCode.NotFound => new NotFoundException(error.Message),
             DomainErrorCode.BadRequest => new BadRequestException(error.Message),
+            DomainErrorCode.Conflict => new ConflictRequestException(error.Message),
             _ => new ArgumentOutOfRangeException()
         };
     }

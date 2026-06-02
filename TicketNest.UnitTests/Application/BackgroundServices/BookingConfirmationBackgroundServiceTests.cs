@@ -4,7 +4,6 @@ using NSubstitute;
 using TicketNest.Application.BackgroundServices;
 using TicketNest.Domain.Constants;
 using TicketNest.Domain.Models;
-using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Models.Queue;
 using TicketNest.Domain.Models.Queue.QueueMessageModels;
 using TicketNest.Domain.Repositories;
@@ -16,16 +15,16 @@ namespace TicketNest.UnitTests.Application.BackgroundServices;
 [TestFixture]
 public class BookingConfirmationBackgroundServiceTests
 {
-    private IBookingRepository _bookingRepository = null!;
     private IBookingConfirmationService _confirmationService = null!;
+    private IQueueMessageRepository _queueMessageRepository = null!;
     private ILogger<BookingConfirmationBackgroundService> _logger = null!;
     private BookingConfirmationBackgroundService _service = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _bookingRepository = Substitute.For<IBookingRepository>();
         _confirmationService = Substitute.For<IBookingConfirmationService>();
+        _queueMessageRepository = Substitute.For<IQueueMessageRepository>();
         _logger = Substitute.For<ILogger<BookingConfirmationBackgroundService>>();
         _service = new BookingConfirmationBackgroundService(
             Substitute.For<IServiceProvider>(), _logger);
@@ -38,43 +37,44 @@ public class BookingConfirmationBackgroundServiceTests
     }
 
     [Test]
-    public async Task HandleMessage_Should_ConfirmAndSave_When_BookingExists()
+    public async Task HandleMessage_Should_Commit_When_ConfirmationSucceeds()
     {
+        // Arrange
         var bookingId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
+        var messageId = Guid.CreateVersion7();
+        var message = QueueMessage<BookingCreatedMessage>.LoadFromStorage(
+            queueName: QueueNames.BookingQueue,
+            messageId: messageId,
+            data: new BookingCreatedMessage(bookingId));
 
-        var message = new BookingCreatedMessage(bookingId);
-
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
-
-        _confirmationService.Confirm(booking, Arg.Any<CancellationToken>())
+        _confirmationService.Confirm(bookingId, Arg.Any<CancellationToken>())
             .Returns(UnitResult<Error>.FromSuccess());
 
-        var result = await _service.HandleMessage(message, _bookingRepository, _confirmationService, CancellationToken.None);
+        // Act
+        await _service.HandleMessage(message, _confirmationService, _queueMessageRepository, CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        await _bookingRepository.Received(1).Save(booking, Arg.Any<CancellationToken>());
+        // Assert
+        await _queueMessageRepository.Received(1).Commit(messageId, Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task HandleMessage_Should_ReturnError_When_BookingNotFound()
+    public async Task HandleMessage_Should_NotCommit_When_ConfirmationFails()
     {
+        // Arrange
         var bookingId = Guid.CreateVersion7();
-        var message = new BookingCreatedMessage(bookingId);
+        var messageId = Guid.CreateVersion7();
+        var message = QueueMessage<BookingCreatedMessage>.LoadFromStorage(
+            queueName: QueueNames.BookingQueue,
+            messageId: messageId,
+            data: new BookingCreatedMessage(bookingId));
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns((Booking?) null);
+        _confirmationService.Confirm(bookingId, Arg.Any<CancellationToken>())
+            .Returns(UnitResult<Error>.FromFailure(new Error(ErrorCode.Conflict, "Seats unavailable")));
 
-        var result = await _service.HandleMessage(message, _bookingRepository, _confirmationService, CancellationToken.None);
+        // Act
+        await _service.HandleMessage(message, _confirmationService, _queueMessageRepository, CancellationToken.None);
 
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().Contain(bookingId.ToString());
-        await _bookingRepository.DidNotReceive().Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>());
+        // Assert
+        await _queueMessageRepository.DidNotReceive().Commit(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 }
