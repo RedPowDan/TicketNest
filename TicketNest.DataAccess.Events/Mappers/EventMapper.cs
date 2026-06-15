@@ -18,19 +18,28 @@ internal static class EventMapper
             availableSeats: source.AvailableSeats);
     }
 
+    public static void Map(Event source, PersistenceEvent target)
+    {
+        Ensure.NotNull(source, nameof(source));
+        Ensure.NotNull(target, nameof(target));
+
+        target.Id = source.Id;
+        target.Title = source.Title;
+        target.Description = source.Description;
+        target.EndAt = source.EndAt;
+        target.StartAt = source.StartAt;
+        target.TotalSeats = source.TotalSeats;
+        target.AvailableSeats = source.AvailableSeats;
+    }
+
     public static PersistenceEvent ToPersistence(Event source)
     {
         Ensure.NotNull(source, nameof(source));
 
-        return new PersistenceEvent
-        {
-            Id = source.Id,
-            Title = source.Title,
-            Description = source.Description,
-            EndAt = source.EndAt,
-            StartAt = source.StartAt,
-            TotalSeats = source.TotalSeats,
-            AvailableSeats = source.AvailableSeats,
-        };
+        var persistenceEvent = new PersistenceEvent();
+
+        Map(source, persistenceEvent);
+
+        return persistenceEvent;
     }
 }

@@ -10,7 +10,7 @@ using TicketNest.Domain.Services.Bookings;
 namespace TicketNest.Application.BackgroundServices;
 
 public class BookingConfirmationBackgroundService(
-    IServiceProvider serviceProvider,
+    IServiceScopeFactory scopeFactory,
     ILogger<BookingConfirmationBackgroundService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken ct)
@@ -19,7 +19,7 @@ public class BookingConfirmationBackgroundService(
         {
             try
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = scopeFactory.CreateScope();
                 var queueMessageRepository = scope.ServiceProvider.GetRequiredService<IQueueMessageRepository>();
                 var messages = await queueMessageRepository.GetAll<BookingCreatedMessage>(queueName: QueueNames.BookingQueue, ct);
                 if (!messages.Any())
@@ -28,9 +28,7 @@ public class BookingConfirmationBackgroundService(
                     continue;
                 }
 
-                var bookingConfirmationService = scope.ServiceProvider.GetRequiredService<IBookingConfirmationService>();
-
-                var tasks = messages.Select(message => HandleMessage(message, bookingConfirmationService, queueMessageRepository, ct));
+                var tasks = messages.Select(message => HandleMessage(message, queueMessageRepository, ct));
 
                 await Task.WhenAll(tasks);
             }
@@ -47,10 +45,11 @@ public class BookingConfirmationBackgroundService(
 
     internal async Task HandleMessage(
         QueueMessage<BookingCreatedMessage> message,
-        IBookingConfirmationService bookingConfirmationService,
         IQueueMessageRepository queueMessageRepository,
         CancellationToken ct)
     {
+        using var messageScope = scopeFactory.CreateScope();
+        var bookingConfirmationService = messageScope.ServiceProvider.GetRequiredService<IBookingConfirmationService>();
         var confirmationResult = await bookingConfirmationService.Confirm(message.Data.BookingId, ct);
         if (confirmationResult.IsFailure)
         {

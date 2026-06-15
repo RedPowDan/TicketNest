@@ -1,30 +1,40 @@
-﻿using System.Collections.Concurrent;
+﻿using TicketNest.DataAccess.Events.DbContext;
 using TicketNest.DataAccess.Events.Mappers;
-using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Repositories;
 
 namespace TicketNest.DataAccess.Events.Implementations;
 
-internal sealed class BookingRepository : IBookingRepository
+internal sealed class BookingRepository(EventsDbContext dbContext) : IBookingRepository
 {
-    private static readonly ConcurrentDictionary<Guid, PersistenceBooking> Bookings = new();
-
-    public Task Save(Booking booking, CancellationToken ct = default)
+    public async Task Save(Booking booking, CancellationToken ct = default)
     {
         Ensure.NotNull(booking, nameof(booking));
 
-        var persistenceBooking = BookingMapper.ToPersistence(booking);
+        var persistenceBooking = await dbContext
+            .Bookings
+            .FindAsync([booking.Id], cancellationToken: ct);
+        if (persistenceBooking != null)
+        {
+            BookingMapper.Map(booking, persistenceBooking);
+        }
+        else
+        {
+            persistenceBooking = BookingMapper.ToPersistence(booking);
+            dbContext.Bookings.Add(persistenceBooking);
+        }
 
-        Bookings.AddOrUpdate(persistenceBooking.Id, persistenceBooking, (_, _) => persistenceBooking);
-
-        return Task.CompletedTask;
+        await dbContext.SaveChangesAsync(ct);
     }
 
-    public ValueTask<Booking?> Get(Guid id, CancellationToken ct = default)
+    public async ValueTask<Booking?> Get(Guid id, CancellationToken ct = default)
     {
-        Bookings.TryGetValue(id, out var persistenceBooking);
+        var persistenceBooking = await dbContext
+            .Bookings
+            .FindAsync([id], cancellationToken: ct);
 
-        return ValueTask.FromResult(persistenceBooking == null ? null : BookingMapper.ToDomain(persistenceBooking));
+        return persistenceBooking == null
+            ? null
+            : BookingMapper.ToDomain(persistenceBooking);
     }
 }
