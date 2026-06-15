@@ -5,6 +5,7 @@
 ## 🚀 Технологии
 
 - **.NET 9**, **ASP.NET Core**
+- **PostgreSQL** (Entity Framework Core + Npgsql)
 - **API Versioning** (`Asp.Versioning`)
 - **Clean Architecture** (Onion): Api → Application → Domain ← Shared
 - **Domain-Driven Design** (Value Objects, Domain Services, Aggregates)
@@ -121,7 +122,26 @@ TicketNest/
 └── Shared/                           # Guard, Result Pattern, Helpers
 ```
 
+## 🛠️ Требования
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- **PostgreSQL** (рекомендуется версия 14+)
+
 ## 🛠️ Установка и запуск
+
+1. Убедитесь, что PostgreSQL запущен на вашей машине.
+
+2. Настройте строку подключения в `TicketNest.Api/appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "EventsDbConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=Master1234"
+  }
+}
+```
+
+3. Склонируйте репозиторий и запустите приложение:
 
 ```bash
 git clone https://github.com/RedPowDan/TicketNest
@@ -130,7 +150,11 @@ dotnet restore
 dotnet run --project TicketNest.Api
 ```
 
+Схема базы данных создаётся **автоматически** при первом запуске (через `EnsureCreated`). База данных и все таблицы будут созданы без необходимости выполнять миграции вручную.
+
 ## 🧪 Тесты
+
+В тестах используется **InMemory-провайдер** Entity Framework Core, поэтому PostgreSQL для их запуска не требуется.
 
 ```bash
 dotnet test
