@@ -15,15 +15,21 @@ internal static class BookingMapper
             processedAt: source.ProcessedAt);
     }
 
+    public static void Map(Booking source, PersistenceBooking target)
+    {
+        target.Id = source.Id;
+        target.EventId = source.EventId;
+        target.Status = source.Status;
+        target.CreatedAt = source.CreatedAt;
+        target.ProcessedAt = source.ProcessedAt;
+    }
+
     public static PersistenceBooking ToPersistence(Booking source)
     {
-        return new PersistenceBooking
-        {
-            Id = source.Id,
-            EventId = source.EventId,
-            Status = source.Status,
-            CreatedAt = source.CreatedAt,
-            ProcessedAt = source.ProcessedAt,
-        };
+        var persistance = new PersistenceBooking();
+
+        Map(source, persistance);
+
+        return persistance;
     }
 }

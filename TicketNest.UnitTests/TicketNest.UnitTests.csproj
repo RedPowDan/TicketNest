@@ -13,6 +13,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
         <PackageReference Include="NSubstitute" />
         <PackageReference Include="NUnit"/>
@@ -28,6 +29,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj"/>
+        <ProjectReference Include="..\TicketNest.DataAccess.Queue\TicketNest.DataAccess.Queue.csproj"/>
     </ItemGroup>
 
 </Project>

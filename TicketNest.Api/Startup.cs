@@ -1,4 +1,5 @@
-﻿using TicketNest.Api.DI;
+﻿using Microsoft.EntityFrameworkCore;
+using TicketNest.Api.DI;
 using TicketNest.Api.Infrastructure;
 using TicketNest.Api.Middlewares;
 using TicketNest.Application;
@@ -25,7 +26,7 @@ public class Startup
         services.AddControllers();
         services.AddSwagger();
         services.AddApplicationServices();
-        services.AddEventDataAccess();
+        services.AddEventDataAccess(Configuration.GetConnectionString("EventsDbConnection")!);
         services.AddQueueDataAccess();
         services.AddScoped<ExceptionHandlingMiddleware>();
 
@@ -34,7 +35,7 @@ public class Startup
             .AddNewtonsoftJson(options => JsonSettingsConfigurator.ConfigureSettings(options.SerializerSettings));
     }
 
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(WebApplication app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())
         {
@@ -50,6 +51,9 @@ public class Startup
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseHttpsRedirection();
         app.UseRouting();
+
+        app.Services.RunMigrations();
+
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 }

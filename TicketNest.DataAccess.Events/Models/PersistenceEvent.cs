@@ -2,17 +2,19 @@
 
 internal sealed class PersistenceEvent
 {
-    public Guid Id { get; init; }
+    public Guid Id { get; set; }
 
-    public string Title { get; init; } = null!;
+    public string Title { get; set; } = null!;
 
-    public string? Description { get; init; }
+    public string? Description { get; set; }
 
-    public DateTime StartAt { get; init; }
+    public DateTime StartAt { get; set; }
 
-    public DateTime EndAt { get; init; }
+    public DateTime EndAt { get; set; }
 
-    public int TotalSeats { get; init; }
+    public int TotalSeats { get; set; }
 
-    public int AvailableSeats { get; init; }
+    public int AvailableSeats { get; set; }
+
+    public List<PersistenceBooking> Bookings { get; set; } = null!;
 }

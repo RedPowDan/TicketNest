@@ -13,4 +13,6 @@ internal sealed class PersistenceBooking
     public DateTime CreatedAt { get; set; }
 
     public DateTime? ProcessedAt { get; set; }
+
+    public PersistenceEvent Event { get; set; } = null!;
 }
