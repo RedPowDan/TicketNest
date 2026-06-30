@@ -31,7 +31,7 @@ internal sealed class PersistenceEventsFilter
     {
         if (Title != null)
         {
-            yield return x => x.Title.Contains(Title, StringComparison.InvariantCultureIgnoreCase);
+            yield return x => x.Title.Contains(Title);
         }
 
         if (From.HasValue)
