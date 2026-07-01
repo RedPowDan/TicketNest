@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using TicketNest.DataAccess.Events.DbContext;
 
 namespace TicketNest.DataAccess.Events;
@@ -11,6 +12,6 @@ public static class ServiceProviderExtensions
 
         var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
 
-        db.Database.EnsureCreated();
+        db.Database.Migrate();
     }
 }
