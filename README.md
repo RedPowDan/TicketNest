@@ -11,7 +11,9 @@
 - **Domain-Driven Design** (Value Objects, Domain Services, Aggregates)
 - **Result pattern** для обработки ошибок (`Result<TValue, TError>`)
 - **Background Services** для асинхронной обработки
-- **NSubstitute**, **NUnit**, **FluentAssertions** (тесты)
+- **NSubstitute**, **FluentAssertions** (тесты)
+- **NUnit** (UnitTests), **xUnit** (IntegrationTests)
+- **Testcontainers.PostgreSql** (интеграционные тесты с реальной БД)
 
 ## 📦 Функционал
 
@@ -154,11 +156,21 @@ dotnet run --project TicketNest.Api
 
 ## 🧪 Тесты
 
-В тестах используется **InMemory-провайдер** Entity Framework Core, поэтому PostgreSQL для их запуска не требуется.
+### Unit-тесты
+Используют **InMemory-провайдер** Entity Framework Core и **NSubstitute** для изоляции. PostgreSQL не требуется.
 
 ```bash
-dotnet test
+dotnet test TicketNest.UnitTests
 ```
+
+### Интеграционные тесты
+Используют **Testcontainers.PostgreSql** — запускают реальный PostgreSQL в Docker-контейнере. Требуется **Docker** на машине выполнения.
+
+```bash
+dotnet test TicketNest.IntegrationTests
+```
+
+Контейнер создаётся один раз на всю сессию тестов и переиспользуется между тестами. База данных сбрасывается перед каждым тестом (DELETE существующих записей).
 
 ---
 
