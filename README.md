@@ -1,23 +1,24 @@
-# TicketNest API
+# TicketNest
 
 Бэкенд-сервис для управления событиями и бронированиями (билетная система).
 
-## 🚀 Технологии
+## Технологии
 
 - **.NET 9**, **ASP.NET Core**
 - **PostgreSQL** (Entity Framework Core + Npgsql)
-- **API Versioning** (`Asp.Versioning`)
-- **Clean Architecture** (Onion): Api → Application → Domain ← Shared
-- **Domain-Driven Design** (Value Objects, Domain Services, Aggregates)
-- **Result pattern** для обработки ошибок (`Result<TValue, TError>`)
-- **Background Services** для асинхронной обработки
-- **NSubstitute**, **FluentAssertions** (тесты)
+- **Clean Architecture** (Domain → Application → Presentation)
+- **Domain-Driven Design** (Aggregate Roots, Domain Services, Value Objects)
+- **Result pattern** (`Result<TValue, TError>`) для обработки ошибок без исключений
+- **CQRS**-like разделение команд и запросов на уровне сервисов
+- **SemaphoreSlim** для защиты от состояний гонки при бронировании
+- **Background Service** для асинхронного подтверждения броней
+- **FluentAssertions** + **NSubstitute** (тесты)
 - **NUnit** (UnitTests), **xUnit** (IntegrationTests)
 - **Testcontainers.PostgreSql** (интеграционные тесты с реальной БД)
 
-## 📦 Функционал
+## Функционал
 
-### Events Controller (`/events`)
+### Events (`/events`)
 
 | Метод | Эндпоинт | Описание |
 |-------|----------|----------|
@@ -26,9 +27,9 @@
 | POST | `/events` | Создать новое событие |
 | PUT | `/events/{id}` | Обновить событие |
 | DELETE | `/events/{id}` | Удалить событие |
-| POST | `/events/{id}/book` | Создать бронирование на событие (202 Accepted / 409 Conflict) |
+| POST | `/events/{id}/book` | Создать бронирование (202 Accepted / 409 Conflict) |
 
-### Booking Controller (`/bookings`)
+### Bookings (`/bookings`)
 
 | Метод | Эндпоинт | Описание |
 |-------|----------|----------|
@@ -36,218 +37,154 @@
 
 ### Модель Event
 
-Событие содержит информацию о вместимости и доступных местах.
-
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `Id` | `Guid` | Уникальный идентификатор события |
-| `Title` | `string` | Название события |
+| `Id` | `Guid` | Уникальный идентификатор |
+| `Title` | `string` | Название |
 | `Description` | `string?` | Описание (необязательно) |
 | `StartAt` | `DateTime` | Дата и время начала (UTC) |
 | `EndAt` | `DateTime` | Дата и время окончания (UTC) |
 | `TotalSeats` | `int` | Общее количество мест |
-| `AvailableSeats` | `int` | Количество свободных мест на данный момент |
+| `AvailableSeats` | `int` | Свободных мест на данный момент |
 
 ### Модель Booking
 
-Бронирование создаётся в статусе `Pending` и асинхронно подтверждается фоновым процессом.
-
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `Id` | `Guid` | Уникальный идентификатор бронирования |
+| `Id` | `Guid` | Уникальный идентификатор |
 | `EventId` | `Guid` | Идентификатор события |
-| `Status` | `BookingStatus` | Текущий статус брони |
+| `Status` | `BookingStatus` | Текущий статус |
 | `CreatedAt` | `DateTime` | Дата и время создания (UTC) |
-| `ProcessedAt` | `DateTime?` | Дата и время обработки (заполняется при подтверждении) |
+| `ProcessedAt` | `DateTime?` | Дата и время обработки |
 
-**Статусы бронирования (`BookingStatus`)**:
+Статусы: `Pending` → `Confirmed` | `Rejected`
 
-| Статус | Значение | Описание |
-|--------|----------|----------|
-| `Pending` | 0 | Бронь создана, ожидает подтверждения |
-| `Confirmed` | 1 | Бронь подтверждена билетной системой |
-| `Rejected` | 2 | Бронь отклонена |
+### Защита от овербукинга
 
-### Примитивы синхронизации
+`BookingService` использует `SemaphoreSlim(1,1)` для сериализации запросов на бронирование. Каждый запрос атомарно проверяет места (`TryReserveSeats()`), сохраняет бронь и событие, затем отпускает семафор. При сбое подтверждения броня переводится в `Rejected`, а место восстанавливается (`ReleaseSeats()`).
 
-Для защиты от состояния гонки при бронировании используются `SemaphoreSlim(1, 1)`:
+### Фоновая обработка
 
-- **BookingService** — статический семафор сериализует все запросы на создание брони. Каждый запрос захватывает семафор, проверяет наличие мест (`Event.TryReserveSeats()`), сохраняет бронь и событие, затем отпускает семафор. Это гарантирует атомарность операции «проверить места → уменьшить счётчик → сохранить».
-- **BookingConfirmationService** — аналогичный семафор сериализует подтверждение брони и компенсирующие действия (Reject + ReleaseSeats) при сбое.
+После создания брони сообщение попадает в очередь. `BookingConfirmationBackgroundService` в бесконечном цикле читает очередь, эмулирует обращение к внешней билетной системе и подтверждает бронь. При ошибке — компенсация (Reject + ReleaseSeats).
 
-### Логика управления местами
-
-При создании брони сервис проверяет `AvailableSeats` события:
-- Если мест нет → возвращается `409 Conflict` с сообщением `"No available seats for this event"`.
-- Если место есть → `AvailableSeats` уменьшается на 1, бронь сохраняется в статусе `Pending`.
-
-При сбое подтверждения (в фоновом сервисе) броня переводится в `Rejected`, а освободившееся место восстанавливается вызовом `Event.ReleaseSeats()`, что делает его доступным для следующих бронирований.
-
-### Логика фоновой обработки
-
-После создания бронирования сервис помещает сообщение в очередь (`BookingQueue`). Фоновый сервис `BookingConfirmationBackgroundService` работает в бесконечном цикле:
-
-1. Читает сообщение из очереди
-2. Загружает бронь из репозитория
-3. Вызывает `BookingConfirmationService.Confirm()`:
-   - Эмулирует обращение к внешней билетной системе (10 сек)
-   - Переводит бронь в статус `Confirmed`
-4. Сохраняет обновлённую бронь
-5. Подтверждает (коммитит) сообщение в очереди
-
----
-
-## 🏗️ Архитектура проекта
+## Архитектура
 
 ```
 TicketNest/
-├── Api/                              # Презентационный слой
-│   ├── Controllers/V1/
-│   │   ├── EventsController.cs       # CRUD событий + book
-│   │   └── BookingController.cs      # GET бронирований
-│   ├── Models/V1/                    # DTO
-│   ├── Mappers/                      # Domain → DTO
-│   └── Middlewares/                  # Exception Handling
-├── Application/                      # Слой приложения
+├── TicketNest.Api                     # Presentation
+│   ├── Controllers/V1/                # Тонкие контроллеры
+│   ├── Models/V1/                     # DTO (запросы/ответы)
+│   ├── Mappers/                       # Domain → DTO
+│   ├── Middlewares/                   # Exception handling
+│   ├── Exceptions/                    # API-исключения
+│   ├── Startup.cs                     # Composition root (DI)
+│   └── Program.cs
+│
+├── TicketNest.Application             # Application
 │   ├── Services/
-│   │   ├── Events/                   # IEventService / EventService
-│   │   └── Bookings/                 # IBookingService / BookingService
-│   └── BackgroundServices/           # BookingConfirmationBackgroundService
-├── Domain/                           # Доменный слой
+│   │   ├── Events/                    # EventService (use cases)
+│   │   └── Bookings/                  # BookingService (use cases)
+│   └── BackgroundServices/            # Фоновые обработчики
+│
+├── TicketNest.Domain                  # Domain (core)
 │   ├── Models/
-│   │   ├── Events/Event.cs
-│   │   └── Bookings/Booking.cs       # Booking, BookingStatus
-│   ├── Services/Bookings/            # IBookingFactory, IBookingConfirmationService
-│   ├── Repositories/                 # IEventsRepository, IBookingRepository
-│   └── ValueObjects/                 # EventId, EventTitle, EventDescription
-├── DataAccess.Events/                # In-memory реализация репозиториев
-└── Shared/                           # Guard, Result Pattern, Helpers
+│   │   ├── Events/Event.cs            # Aggregate root
+│   │   ├── Bookings/Booking.cs        # Aggregate root
+│   │   ├── Queue/QueueMessage.cs      # Value object
+│   │   └── Error.cs                   # Error model
+│   ├── Repositories/                  # Ports (interfaces)
+│   ├── Services/Bookings/             # Domain services
+│   ├── Filters/                       # Specification objects
+│   ├── Pagination/                    # Pagination primitives
+│   └── Constants/                     # Domain enums
+│
+├── TicketNest.DataAccess.Events       # Infrastructure (RDBMS)
+│   ├── Implementations/               # Repository implementations
+│   ├── Models/                        # EF Core persistence models
+│   ├── Mappers/                       # Domain ↔ Persistence
+│   ├── DbContext/                     # EventsDbContext
+│   └── Migrations/                    # EF Core migrations
+│
+├── TicketNest.DataAccess.Queue        # Infrastructure (queue)
+│   └── Implementations/               # In-memory queue
+│
+├── TicketNest.Shared                  # Shared kernel
+│   ├── Guard/                         # Guard clauses
+│   └── Objects/                       # Result pattern
+│
+├── TicketNest.UnitTests               # NUnit
+│   └── ...
+│
+└── TicketNest.IntegrationTests        # xUnit + Testcontainers
+    └── ...
 ```
 
-## 🛠️ Требования
+### Направление зависимостей
+
+```
+Shared → Domain → Application ← Infrastructure
+                        ↑            |
+                        └── Api ─────┘
+```
+
+- **Shared** — toolkit без зависимостей (Guard, Result pattern)
+- **Domain** — бизнес-правила, порты репозиториев, доменные службы. Зависит только от Shared
+- **Application** — use cases, оркестрация, фоновые задачи. Зависит от Domain
+- **Infrastructure** (DataAccess.\*) — реализация портов (EF Core, очереди). Зависит от Application
+- **Api** — composition root, DI, middleware, DTO. Зависит от Application и Infrastructure
+
+### Ключевые принципы
+
+- Порты (интерфейсы репозиториев) объявлены в Domain — DDD-подход, где доменные службы используют абстракции для поддержания инвариантов
+- Контроллеры не содержат бизнес-логики, только маппинг и делегирование сервисам
+- Инфраструктурные детали (EF Core, ORM) не протекают в Application или Domain
+- DI-регистрация каждого слоя через extension-методы
+
+## Требования
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- **PostgreSQL** (рекомендуется версия 14+)
+- **PostgreSQL 14+** для запуска приложения
+- **Docker** для интеграционных тестов
 
-## 🛠️ Установка и запуск
+## Установка и запуск
 
-1. Убедитесь, что PostgreSQL запущен на вашей машине.
-
-2. Настройте строку подключения в `TicketNest.Api/appsettings.json`:
+1. Настройте строку подключения в `TicketNest.Api/appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "EventsDbConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=Master1234"
+    "EventsDbConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
   }
 }
 ```
 
-3. Склонируйте репозиторий и запустите приложение:
+2. Запустите:
 
 ```bash
-git clone https://github.com/RedPowDan/TicketNest
-cd TicketNest
 dotnet restore
 dotnet run --project TicketNest.Api
 ```
 
-Схема базы данных создаётся **автоматически** при первом запуске (через `EnsureCreated`). База данных и все таблицы будут созданы без необходимости выполнять миграции вручную.
+Схема БД создаётся автоматически через EF Core EnsureCreated.
 
-## 🧪 Тесты
+## Тесты
 
 ### Unit-тесты
-Используют **InMemory-провайдер** Entity Framework Core и **NSubstitute** для изоляции. PostgreSQL не требуется.
 
 ```bash
 dotnet test TicketNest.UnitTests
 ```
 
+Изолированы через EF Core InMemory и NSubstitute. PostgreSQL не требуется. 133 теста.
+
 ### Интеграционные тесты
-Используют **Testcontainers.PostgreSql** — запускают реальный PostgreSQL в Docker-контейнере. Требуется **Docker** на машине выполнения.
 
 ```bash
 dotnet test TicketNest.IntegrationTests
 ```
 
-Контейнер создаётся один раз на всю сессию тестов и переиспользуется между тестами. База данных сбрасывается перед каждым тестом (DELETE существующих записей).
+Требуют **Docker**. Testcontainers автоматически поднимает PostgreSQL-контейнер, создаёт схему и сбрасывает данные между тестами. 19 тестов.
 
----
+### CI
 
-## 📋 Пример сценария использования
-
-```http
-### 1. Создать событие на 3 места
-POST /events
-Content-Type: application/json
-
-{
-  "title": "Концерт",
-  "description": "Живое выступление",
-  "startAt": "2026-06-15T19:00:00Z",
-  "endAt": "2026-06-15T23:00:00Z",
-  "totalSeats": 3
-}
-
-→ 201 Created
-{
-  "result": { "id": "evt-001", "title": "Концерт", "totalSeats": 3, "availableSeats": 3, ... },
-  "error": null
-}
-
-### 2. Забронировать место на событие (успешно)
-POST /events/evt-001/book
-
-→ 202 Accepted
-Location: /bookings/bkg-001
-{
-  "result": { "id": "bkg-001", "eventId": "evt-001", "status": "Pending" },
-  "error": null
-}
-```
-
-### Сценарий: овербукинг
-
-Событие создано на **3 места**. Четыре параллельных запроса на бронирование:
-
-```http
-### Запрос 1 — успех (места: 3 → 2)
-POST /events/evt-001/book
-
-### Запрос 2 — успех (места: 2 → 1)
-POST /events/evt-001/book
-
-### Запрос 3 — успех (места: 1 → 0)
-POST /events/evt-001/book
-
-### Запрос 4 — отклонён (мест нет)
-POST /events/evt-001/book
-
-→ 409 Conflict
-{
-  "result": null,
-  "error": { "code": "Conflict", "message": "No available seats for this event" }
-}
-```
-
-Благодаря `SemaphoreSlim` все запросы сериализуются: первые три успешно резервируют места, четвёртый получает `409 Conflict`. После подтверждения брони (или сбоя и отката) количество доступных мест соответственно уменьшается или восстанавливается.
-
-```http
-### 3. Проверить статус брони (сразу после создания)
-GET /bookings/bkg-001
-
-→ 200 OK
-{
-  "result": { "id": "bkg-001", "eventId": "evt-001", "status": "Pending" },
-  "error": null
-}
-
-### 4. Проверить статус брони (через ~10 сек, после подтверждения)
-GET /bookings/bkg-001
-
-→ 200 OK
-{
-  "result": { "id": "bkg-001", "eventId": "evt-001", "status": "Confirmed" },
-  "error": null
-}
-```
+GitHub Actions (`BuildBackend.yml`): сборка → unit-тесты + integration-тесты (параллельно).
