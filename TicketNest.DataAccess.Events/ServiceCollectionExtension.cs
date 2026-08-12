@@ -14,6 +14,7 @@ public static class ServiceCollectionExtension
                 .AddDbContext<EventsDbContext>(options => options.UseNpgsql(connectionString))
                 .AddScoped<IEventsRepository, EventRepository>()
                 .AddScoped<IBookingRepository, BookingRepository>()
+                .AddScoped<IUserRepository, UserRepository>()
             ;
     }
 }

@@ -43,5 +43,6 @@ public sealed class PostgreSqlContainerFixture : IAsyncLifetime
         await using var dbContext = new EventsDbContext(options);
         await dbContext.Bookings.ExecuteDeleteAsync();
         await dbContext.Events.ExecuteDeleteAsync();
+        await dbContext.Users.ExecuteDeleteAsync();
     }
 }
