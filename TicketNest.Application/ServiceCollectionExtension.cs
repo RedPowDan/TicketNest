@@ -3,6 +3,7 @@ using TicketNest.Application.BackgroundServices;
 using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
 using TicketNest.Domain.Services.Bookings;
+using TicketNest.Domain.Services.Events;
 
 namespace TicketNest.Application;
 
@@ -23,6 +24,7 @@ public static class ServiceCollectionExtension
         return services
                 .AddScoped<IBookingFactory, BookingFactory>()
                 .AddScoped<IBookingConfirmationService, BookingConfirmationService>()
+                .AddScoped<IEventReleaseSeatsService, EventReleaseSeatsService>()
             ;
     }
 

@@ -5,6 +5,7 @@ using TicketNest.Domain.Constants;
 using TicketNest.Domain.Models.Queue;
 using TicketNest.Domain.Models.Queue.QueueMessageModels;
 using TicketNest.Domain.Repositories;
+using TicketNest.Domain.Services.Events;
 
 namespace TicketNest.Application.BackgroundServices;
 
@@ -48,33 +49,17 @@ public class BookingCancellationBackgroundService(
         CancellationToken ct)
     {
         using var messageScope = scopeFactory.CreateScope();
-        var eventsRepository = messageScope.ServiceProvider.GetRequiredService<IEventsRepository>();
-        var bookingRepository = messageScope.ServiceProvider.GetRequiredService<IBookingRepository>();
+        var eventReleaseSeatsService = messageScope.ServiceProvider.GetRequiredService<IEventReleaseSeatsService>();
 
         var bookingId = message.Data.BookingId;
-        var booking = await bookingRepository.Get(bookingId, ct);
-        if (booking is null)
+        var result = await eventReleaseSeatsService.ReleaseSeats(bookingId, ct: ct);
+        if (result.IsFailure)
         {
-            logger.LogError("Ошибка отмены брони: бронь {BookingId} не найдена", bookingId);
-            return;
-        }
-
-        var @event = await eventsRepository.Get(booking.EventId, ct);
-        if (@event is null)
-        {
-            logger.LogError("Ошибка отмены брони: событие {BookingEventId} не найдено", booking.EventId);
-            return;
-        }
-
-        var isSuccess = @event.ReleaseSeats();
-        if (isSuccess)
-        {
-            logger.LogError("Невозможно вернуть место");
-            return;
-        }
+            logger.LogError("Ошибка отмены брони {BookingId}. Подробности: {@ResultError}", bookingId, result.Error);
+        }    
 
         await queueMessageRepository.Commit(message.MessageId, ct);
 
-        logger.LogTrace("Бронь с идентификатором {BookingId} отменена", message.Data.BookingId);
+        logger.LogTrace("Бронь с идентификатором {BookingId} отменена", bookingId);
     }
 }
