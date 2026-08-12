@@ -13,7 +13,8 @@ internal sealed class BookingService(
     IBookingFactory bookingFactory,
     IBookingRepository bookingRepository,
     IQueueMessageRepository queueMessageRepository,
-    IEventsRepository eventsRepository) : IBookingService
+    IEventsRepository eventsRepository,
+    IUserRepository userRepository) : IBookingService
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
@@ -60,6 +61,36 @@ internal sealed class BookingService(
         {
             return new Error(ErrorCode.NotFound, "Бронирование не найдено");
         }
+
+        return booking;
+    }
+
+    public async Task<Result<Booking, Error>> Cancel(Guid bookingId, Guid userId, CancellationToken ct = default)
+    {
+        var initiator = await userRepository.Get(userId, ct);
+        if (initiator is null)
+        {
+            return new Error(ErrorCode.Unauthorized, "Текущий пользователь не найден");
+        }
+
+        var booking = await bookingRepository.Get(bookingId, ct);
+        if (booking is null)
+        {
+            return new Error(ErrorCode.NotFound, "Бронь не найдена");
+        }
+
+        var canCancel = booking.CanCancel(initiator);
+        if (canCancel.IsFailure)
+        {
+            return canCancel.Error;
+        }
+
+        booking.Cancel(DateTime.UtcNow);
+
+        await bookingRepository.Save(booking, ct);
+        
+        var message = QueueMessage<BookingCanceledMessage>.Create(queueName: QueueNames.BookingQueue, new BookingCanceledMessage(bookingId: bookingId));
+        await queueMessageRepository.Create(message, ct);
 
         return booking;
     }

@@ -9,15 +9,6 @@ namespace TicketNest.Domain.Services.Bookings;
 public sealed class BookingConfirmationService(IBookingRepository bookingRepository, IEventsRepository eventsRepository) : IBookingConfirmationService
 {
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    
-    public async Task<UnitResult<Error>> Confirm(Booking booking, CancellationToken ct)
-    {
-        await ConfirmInTicketSystem(booking, ct);
-
-        booking.Confirm(processedAt: DateTime.UtcNow);
-
-        return UnitResult<Error>.FromSuccess();
-    }
 
     public async Task<UnitResult<Error>> Confirm(Guid bookingId, CancellationToken ct)
     {

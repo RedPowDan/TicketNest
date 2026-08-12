@@ -57,6 +57,11 @@ public class Event
         int totalSeats,
         int availableSeats)
     {
+        if (totalSeats < 0)
+        {
+            totalSeats = 0;
+        }
+
         return new Event(id, title, description, startAt, endAt, totalSeats, availableSeats);
     }
 

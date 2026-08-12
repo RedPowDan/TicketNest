@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TicketNest.Api.DI;
+﻿using TicketNest.Api.DI;
 using TicketNest.Api.Infrastructure;
 using TicketNest.Api.Middlewares;
 using TicketNest.Application;
@@ -31,6 +30,11 @@ public class Startup
         services.AddQueueDataAccess();
         services.AddInfrastructure(Configuration);
         services.AddScoped<ExceptionHandlingMiddleware>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<Services.ICurrentUser, Services.CurrentUser>();
+        services.AddJwt(Configuration);
+
+        services.AddAuthorization();
 
         services
             .AddMvc()
@@ -53,6 +57,9 @@ public class Startup
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseHttpsRedirection();
         app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.Services.RunMigrations();
 

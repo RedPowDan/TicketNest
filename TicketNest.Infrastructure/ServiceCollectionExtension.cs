@@ -11,6 +11,7 @@ public static class ServiceCollectionExtension
     {
         return services
                 .Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName))
-                .AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+                .AddScoped<IJwtTokenGenerator, JwtTokenGenerator>()
+                .AddScoped<IJwtTokenReader, JwtTokenReader>();
     }
 }

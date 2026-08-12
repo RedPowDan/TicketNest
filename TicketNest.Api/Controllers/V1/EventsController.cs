@@ -7,6 +7,7 @@ using TicketNest.Api.Models;
 using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Bookings;
 using TicketNest.Api.Models.V1.Events;
+using TicketNest.Api.Services;
 using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
 
@@ -15,7 +16,10 @@ namespace TicketNest.Api.Controllers.V1;
 [ApiController]
 [Route("[controller]")]
 [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status500InternalServerError)]
-public class EventsController(IEventService eventService, IBookingService bookingService) : BaseApiController
+public class EventsController(
+    IEventService eventService,
+    IBookingService bookingService,
+    ICurrentUser currentUser) : BaseApiController
 {
     /// <summary>
     /// Получить список всех событий
@@ -129,11 +133,18 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// </summary>
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Book(Guid id, CancellationToken ct)
     {
-        var createResult = await bookingService.Create(id, ct);
+        var user = currentUser.User;
+        if (user is null)
+        {
+            throw new UnauthorizedException("Не удалось определить пользователя из контекста запроса");
+        }
+
+        var createResult = await bookingService.Create(id, user.Id, ct);
         if (createResult.IsFailure)
         {
             ExceptionFactory.ThrowApiException(createResult.Error);

@@ -26,49 +26,6 @@ public class BookingConfirmationServiceTests
     }
 
     [Test]
-    public async Task Confirm_WithBooking_Should_SetStatusToConfirmed()
-    {
-        // Arrange
-        var booking = Booking.LoadFromStorage(
-            id: Guid.CreateVersion7(),
-            eventId: Guid.CreateVersion7(),
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
-
-        // Act
-        var result = await _service.Confirm(booking, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        booking.Status.Should().Be(BookingStatus.Confirmed);
-        booking.ProcessedAt.Should().NotBeNull();
-        booking.ProcessedAt.Value.Kind.Should().Be(DateTimeKind.Utc);
-    }
-
-    [Test]
-    public async Task Confirm_WithBooking_Should_SetProcessedAt_AfterCreatedAt()
-    {
-        // Arrange
-        var createdAt = DateTime.UtcNow.AddHours(-1);
-        var booking = Booking.LoadFromStorage(
-            id: Guid.CreateVersion7(),
-            eventId: Guid.CreateVersion7(),
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: createdAt,
-            processedAt: null);
-
-        // Act
-        var result = await _service.Confirm(booking, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        booking.ProcessedAt.Should().BeAfter(createdAt);
-    }
-
-    [Test]
     public async Task Confirm_WithBookingId_Should_ConfirmAndSave_When_BookingAndEventExist()
     {
         // Arrange

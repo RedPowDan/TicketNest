@@ -11,6 +11,7 @@ internal static class BookingStatusMapper
             DomainBookingStatus.Pending => BookingStatus.Pending,
             DomainBookingStatus.Confirmed => BookingStatus.Confirmed,
             DomainBookingStatus.Rejected => BookingStatus.Rejected,
+            DomainBookingStatus.Canceled => BookingStatus.Canceled,
             _ => throw new ArgumentOutOfRangeException(nameof(source), source, null)
         };
 }

@@ -5,6 +5,7 @@ using TicketNest.Domain.Constants;
 using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Models.Users;
 using TicketNest.Domain.Models.Queue;
 using TicketNest.Domain.Models.Queue.QueueMessageModels;
 using TicketNest.Domain.Repositories;
@@ -20,6 +21,7 @@ public class BookingServiceTests
     private IBookingRepository _bookingRepository = null!;
     private IQueueMessageRepository _queueMessageRepository = null!;
     private IEventsRepository _eventsRepository = null!;
+    private IUserRepository _userRepository = null!;
     private IBookingService _bookingService = null!;
 
     [SetUp]
@@ -29,7 +31,8 @@ public class BookingServiceTests
         _bookingRepository = Substitute.For<IBookingRepository>();
         _queueMessageRepository = Substitute.For<IQueueMessageRepository>();
         _eventsRepository = Substitute.For<IEventsRepository>();
-        _bookingService = new BookingService(_bookingFactory, _bookingRepository, _queueMessageRepository, _eventsRepository);
+        _userRepository = Substitute.For<IUserRepository>();
+        _bookingService = new BookingService(_bookingFactory, _bookingRepository, _queueMessageRepository, _eventsRepository, _userRepository);
     }
 
     #region Success Scenarios

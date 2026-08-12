@@ -12,6 +12,8 @@ public static class ExceptionFactory
             DomainErrorCode.NotFound => new NotFoundException(error.Message),
             DomainErrorCode.BadRequest => new BadRequestException(error.Message),
             DomainErrorCode.Conflict => new ConflictRequestException(error.Message),
+            DomainErrorCode.Unauthorized => new UnauthorizedException(error.Message),
+            DomainErrorCode.Forbidden => new ForbiddenException(error.Message),
             _ => new ArgumentOutOfRangeException()
         };
     }
