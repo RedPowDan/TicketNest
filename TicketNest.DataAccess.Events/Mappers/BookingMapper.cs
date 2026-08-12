@@ -10,6 +10,7 @@ internal static class BookingMapper
         return Booking.LoadFromStorage(
             id: source.Id,
             eventId: source.EventId,
+            userId: source.UserId,
             status: source.Status,
             createdAt: source.CreatedAt,
             processedAt: source.ProcessedAt);
@@ -19,6 +20,7 @@ internal static class BookingMapper
     {
         target.Id = source.Id;
         target.EventId = source.EventId;
+        target.UserId = source.UserId;
         target.Status = source.Status;
         target.CreatedAt = source.CreatedAt;
         target.ProcessedAt = source.ProcessedAt;

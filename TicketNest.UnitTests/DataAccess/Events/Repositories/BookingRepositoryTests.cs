@@ -5,6 +5,7 @@ using TicketNest.DataAccess.Events.Implementations;
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Models.Users;
 
 namespace TicketNest.UnitTests.DataAccess.Events.Repositories;
 
@@ -31,6 +32,25 @@ public class BookingRepositoryTests
         return @event;
     }
 
+    private static User CreateUser(EventsDbContext dbContext)
+    {
+        var user = User.Create("user01", "hash", UserRole.User).Value;
+        dbContext.Users.Add(UserMapper.ToPersistence(user));
+        dbContext.SaveChanges();
+        return user;
+    }
+
+    private static Booking CreateBooking(Guid eventId, Guid userId)
+    {
+        return Booking.LoadFromStorage(
+            id: Guid.NewGuid(),
+            eventId: eventId,
+            userId: userId,
+            status: BookingStatus.Pending,
+            createdAt: DateTime.UtcNow,
+            processedAt: null);
+    }
+
     [Test]
     public async Task Save_Should_CreateNewBooking_When_BookingDoesNotExist()
     {
@@ -38,13 +58,9 @@ public class BookingRepositoryTests
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = CreateEvent(dbContext);
+        var user = CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id);
 
         // Act
         await repository.Save(booking);
@@ -53,6 +69,7 @@ public class BookingRepositoryTests
         var saved = await dbContext.Bookings.FindAsync(booking.Id);
         saved.Should().NotBeNull();
         saved!.EventId.Should().Be(@event.Id);
+        saved.UserId.Should().Be(user.Id);
         saved.Status.Should().Be(BookingStatus.Pending);
     }
 
@@ -63,13 +80,9 @@ public class BookingRepositoryTests
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = CreateEvent(dbContext);
+        var user = CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id);
         await repository.Save(booking);
 
         booking.Confirm(DateTime.UtcNow);
@@ -90,13 +103,9 @@ public class BookingRepositoryTests
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = CreateEvent(dbContext);
+        var user = CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id);
         await repository.Save(booking);
 
         // Act
@@ -105,6 +114,7 @@ public class BookingRepositoryTests
         // Assert
         result.Should().NotBeNull();
         result!.EventId.Should().Be(@event.Id);
+        result.UserId.Should().Be(user.Id);
         result.Status.Should().Be(BookingStatus.Pending);
     }
 

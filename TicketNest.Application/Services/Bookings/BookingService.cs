@@ -17,9 +17,9 @@ internal sealed class BookingService(
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
-    public async Task<Result<Booking, Error>> Create(Guid eventId, CancellationToken ct = default)
+    public async Task<Result<Booking, Error>> Create(Guid eventId, Guid userId, CancellationToken ct = default)
     {
-        var bookingCreateResult = await bookingFactory.Create(eventId, ct);
+        var bookingCreateResult = await bookingFactory.Create(eventId, userId, ct);
         if (bookingCreateResult.IsFailure)
         {
             return bookingCreateResult;

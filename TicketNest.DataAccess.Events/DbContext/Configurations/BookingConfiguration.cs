@@ -14,5 +14,10 @@ internal sealed class BookingConfiguration : IEntityTypeConfiguration<Persistenc
         builder.Property(b => b.Id).ValueGeneratedNever();
 
         builder.Property(b => b.Status).HasConversion<string>();
+
+        builder
+            .HasOne(b => b.User)
+            .WithMany()
+            .HasForeignKey(b => b.UserId);
     }
 }

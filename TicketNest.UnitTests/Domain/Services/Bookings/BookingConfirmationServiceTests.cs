@@ -32,6 +32,7 @@ public class BookingConfirmationServiceTests
         var booking = Booking.LoadFromStorage(
             id: Guid.CreateVersion7(),
             eventId: Guid.CreateVersion7(),
+            userId: Guid.CreateVersion7(),
             status: BookingStatus.Pending,
             createdAt: DateTime.UtcNow.AddMinutes(-5),
             processedAt: null);
@@ -54,6 +55,7 @@ public class BookingConfirmationServiceTests
         var booking = Booking.LoadFromStorage(
             id: Guid.CreateVersion7(),
             eventId: Guid.CreateVersion7(),
+            userId: Guid.CreateVersion7(),
             status: BookingStatus.Pending,
             createdAt: createdAt,
             processedAt: null);
@@ -75,6 +77,7 @@ public class BookingConfirmationServiceTests
         var booking = Booking.LoadFromStorage(
             id: bookingId,
             eventId: eventId,
+            userId: Guid.CreateVersion7(),
             status: BookingStatus.Pending,
             createdAt: DateTime.UtcNow.AddMinutes(-5),
             processedAt: null);
@@ -134,6 +137,7 @@ public class BookingConfirmationServiceTests
         var booking = Booking.LoadFromStorage(
             id: bookingId,
             eventId: eventId,
+            userId: Guid.CreateVersion7(),
             status: BookingStatus.Pending,
             createdAt: DateTime.UtcNow.AddMinutes(-5),
             processedAt: null);

@@ -9,31 +9,34 @@ public class Booking
 
     public Guid EventId { get; }
 
+    public Guid UserId { get; }
+
     public BookingStatus Status { get; private set; }
 
     public DateTime CreatedAt { get; }
 
     public DateTime? ProcessedAt { get; private set; }
 
-    private Booking(Guid id, Guid eventId, BookingStatus status, DateTime createdAt, DateTime? processedAt)
+    private Booking(Guid id, Guid eventId, Guid userId, BookingStatus status, DateTime createdAt, DateTime? processedAt)
     {
         Id = id;
         EventId = eventId;
+        UserId = userId;
         Status = status;
         CreatedAt = createdAt;
         ProcessedAt = processedAt;
     }
 
-    public static Booking LoadFromStorage(Guid id, Guid eventId, BookingStatus status, DateTime createdAt, DateTime? processedAt)
+    public static Booking LoadFromStorage(Guid id, Guid eventId, Guid userId, BookingStatus status, DateTime createdAt, DateTime? processedAt)
     {
-        return new Booking(id, eventId, status, createdAt, processedAt);
+        return new Booking(id, eventId, userId, status, createdAt, processedAt);
     }
 
-    internal static Booking Create(Guid eventId, DateTime createdAt)
+    internal static Booking Create(Guid eventId, Guid userId, DateTime createdAt)
     {
         Ensure.That(createdAt.Kind == DateTimeKind.Utc, "CreatedAt должен иметь временную зону UTC");
 
-        return new Booking(id: Guid.CreateVersion7(), eventId: eventId, status: BookingStatus.Pending, createdAt: createdAt, processedAt: null);
+        return new Booking(id: Guid.CreateVersion7(), eventId: eventId, userId: userId, status: BookingStatus.Pending, createdAt: createdAt, processedAt: null);
     }
     
     internal void Confirm(DateTime processedAt)
