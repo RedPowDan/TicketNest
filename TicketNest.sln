@@ -1,5 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Api", "TicketNest.Api\TicketNest.Api.csproj", "{4EDEB330-E38C-4454-82F2-9BF90A44D6EA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PrimaryAdapters", "PrimaryAdapters", "{95844A6F-4733-4B6F-B7C8-515425B47A83}"
@@ -39,6 +40,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.DataAccess.Queue
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.IntegrationTests", "TicketNest.IntegrationTests\TicketNest.IntegrationTests.csproj", "{B0ABF622-FF9D-4ED5-A03B-14D83ABFBB0C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Infrastructure", "TicketNest.Infrastructure\TicketNest.Infrastructure.csproj", "{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +80,10 @@ Global
 		{B0ABF622-FF9D-4ED5-A03B-14D83ABFBB0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0ABF622-FF9D-4ED5-A03B-14D83ABFBB0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0ABF622-FF9D-4ED5-A03B-14D83ABFBB0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4EDEB330-E38C-4454-82F2-9BF90A44D6EA} = {95844A6F-4733-4B6F-B7C8-515425B47A83}
@@ -86,5 +93,6 @@ Global
 		{15713240-ED21-4E45-86A5-05F2BC14938A} = {20EFEB38-E5EC-46B9-A122-C9C80434F6EA}
 		{950F87BB-5192-40FC-84F0-5038B73B812B} = {7F053C11-7F52-4634-AF29-7E13EDC4399E}
 		{B0ABF622-FF9D-4ED5-A03B-14D83ABFBB0C} = {20EFEB38-E5EC-46B9-A122-C9C80434F6EA}
+		{271E5AEB-27E7-42EB-A9CD-372AFE5F19A0} = {7F053C11-7F52-4634-AF29-7E13EDC4399E}
 	EndGlobalSection
 EndGlobal

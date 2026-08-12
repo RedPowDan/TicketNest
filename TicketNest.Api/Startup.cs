@@ -5,6 +5,7 @@ using TicketNest.Api.Middlewares;
 using TicketNest.Application;
 using TicketNest.DataAccess.Events;
 using TicketNest.DataAccess.Queue;
+using TicketNest.Infrastructure;
 
 namespace TicketNest.Api;
 
@@ -28,6 +29,7 @@ public class Startup
         services.AddApplicationServices();
         services.AddEventDataAccess(Configuration.GetConnectionString("EventsDbConnection")!);
         services.AddQueueDataAccess();
+        services.AddInfrastructure(Configuration);
         services.AddScoped<ExceptionHandlingMiddleware>();
 
         services
