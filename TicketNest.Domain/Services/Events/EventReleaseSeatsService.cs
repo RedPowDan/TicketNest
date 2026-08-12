@@ -29,7 +29,7 @@ public sealed class EventReleaseSeatsService(IEventsRepository eventsRepository,
                 return new Error(ErrorCode.NotFound, $"Ошибка отмены брони: событие {booking.EventId} не найдено");
             }
 
-            var isSuccess = @event.ReleaseSeats();
+            var isSuccess = @event.ReleaseSeats(count);
             if (isSuccess)
             {
                 return new Error(ErrorCode.BadRequest, "Невозможно вернуть бронь");
