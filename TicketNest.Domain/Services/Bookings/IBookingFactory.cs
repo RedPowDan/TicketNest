@@ -6,5 +6,5 @@ namespace TicketNest.Domain.Services.Bookings;
 
 public interface IBookingFactory
 {
-    public Task<Result<Booking, Error>> Create(Guid eventId, CancellationToken ct = default);
+    public Task<Result<Booking, Error>> Create(Guid eventId, Guid userId, CancellationToken ct = default);
 }

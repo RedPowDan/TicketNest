@@ -5,6 +5,7 @@ using TicketNest.Domain.Constants;
 using TicketNest.Domain.Models;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Models.Users;
 using TicketNest.Domain.Models.Queue;
 using TicketNest.Domain.Models.Queue.QueueMessageModels;
 using TicketNest.Domain.Repositories;
@@ -20,6 +21,7 @@ public class BookingServiceTests
     private IBookingRepository _bookingRepository = null!;
     private IQueueMessageRepository _queueMessageRepository = null!;
     private IEventsRepository _eventsRepository = null!;
+    private IUserRepository _userRepository = null!;
     private IBookingService _bookingService = null!;
 
     [SetUp]
@@ -29,7 +31,8 @@ public class BookingServiceTests
         _bookingRepository = Substitute.For<IBookingRepository>();
         _queueMessageRepository = Substitute.For<IQueueMessageRepository>();
         _eventsRepository = Substitute.For<IEventsRepository>();
-        _bookingService = new BookingService(_bookingFactory, _bookingRepository, _queueMessageRepository, _eventsRepository);
+        _userRepository = Substitute.For<IUserRepository>();
+        _bookingService = new BookingService(_bookingFactory, _bookingRepository, _queueMessageRepository, _eventsRepository, _userRepository);
     }
 
     #region Success Scenarios
@@ -39,10 +42,11 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.CreateVersion7();
-        var booking = CreateValidBooking(eventId: eventId, status: BookingStatus.Pending);
+        var userId = Guid.CreateVersion7();
+        var booking = CreateValidBooking(eventId: eventId, userId: userId, status: BookingStatus.Pending);
         var @event = CreateTestEvent(eventId, totalSeats: 10);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromSuccess(booking));
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
@@ -58,16 +62,18 @@ public class BookingServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Status.Should().Be(BookingStatus.Pending);
         result.Value.EventId.Should().Be(eventId);
+        result.Value.UserId.Should().Be(userId);
 
         await _bookingRepository.Received(1).Save(Arg.Is<Booking>(b =>
             b.Id == booking.Id &&
             b.EventId == eventId &&
+            b.UserId == userId &&
             b.Status == BookingStatus.Pending), Arg.Any<CancellationToken>());
 
         await _eventsRepository.Received(1).Save(Arg.Is<Event>(e =>
@@ -77,7 +83,7 @@ public class BookingServiceTests
         await _queueMessageRepository.Received(1).Create(
             Arg.Is<QueueMessage<BookingCreatedMessage>>(m =>
                 m.Data.BookingId == booking.Id &&
-                m.QueueName == QueueNames.BookingQueue),
+                m.QueueName == QueueNames.BookingCreatedQueue),
             Arg.Any<CancellationToken>());
     }
 
@@ -89,7 +95,7 @@ public class BookingServiceTests
         var booking = CreateValidBooking(eventId: eventId, status: BookingStatus.Pending);
         var @event = CreateTestEvent(eventId, totalSeats: 5, availableSeats: 5);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromSuccess(booking));
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
@@ -105,7 +111,7 @@ public class BookingServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -125,7 +131,7 @@ public class BookingServiceTests
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result<Booking, Error>.FromSuccess(
                 CreateValidBooking(eventId: eventId)));
 
@@ -139,10 +145,10 @@ public class BookingServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result1 = await _bookingService.Create(eventId);
-        var result2 = await _bookingService.Create(eventId);
-        var result3 = await _bookingService.Create(eventId);
-        var result4 = await _bookingService.Create(eventId);
+        var result1 = await _bookingService.Create(eventId, Guid.CreateVersion7());
+        var result2 = await _bookingService.Create(eventId, Guid.CreateVersion7());
+        var result3 = await _bookingService.Create(eventId, Guid.CreateVersion7());
+        var result4 = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result1.IsSuccess.Should().BeTrue();
@@ -164,7 +170,7 @@ public class BookingServiceTests
         var booking2 = CreateValidBooking(eventId: eventId, status: BookingStatus.Pending);
         var @event = CreateTestEvent(eventId, totalSeats: 10);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(
                 Result<Booking, Error>.FromSuccess(booking1),
                 Result<Booking, Error>.FromSuccess(booking2));
@@ -182,8 +188,8 @@ public class BookingServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result1 = await _bookingService.Create(eventId);
-        var result2 = await _bookingService.Create(eventId);
+        var result1 = await _bookingService.Create(eventId, Guid.CreateVersion7());
+        var result2 = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result1.IsSuccess.Should().BeTrue();
@@ -220,7 +226,7 @@ public class BookingServiceTests
         var eventId = Guid.CreateVersion7();
 
         var pendingBooking = CreateValidBooking(bookingId, eventId);
-        var confirmedBooking = CreateValidBooking(bookingId, eventId, BookingStatus.Confirmed);
+        var confirmedBooking = CreateValidBooking(bookingId, eventId, status: BookingStatus.Confirmed);
 
         _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
             .Returns(pendingBooking);
@@ -251,11 +257,11 @@ public class BookingServiceTests
         var eventId = Guid.CreateVersion7();
         var error = new Error(ErrorCode.NotFound, "Событие не найдено");
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromFailure(error));
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -273,14 +279,14 @@ public class BookingServiceTests
         var eventId = Guid.CreateVersion7();
         var booking = CreateValidBooking(eventId: eventId, status: BookingStatus.Pending);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromSuccess(booking));
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns((Event?) null);
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -299,14 +305,14 @@ public class BookingServiceTests
         var booking = CreateValidBooking(eventId: eventId, status: BookingStatus.Pending);
         var @event = CreateTestEvent(eventId, totalSeats: 5, availableSeats: 0);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromSuccess(booking));
 
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -333,6 +339,126 @@ public class BookingServiceTests
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
         result.Error.Message.Should().Be("Бронирование не найдено");
+    }
+
+    #endregion
+
+    #region User Booking Limit Tests
+
+    [Test]
+    public async Task Create_Should_ReturnBadRequest_When_EventAlreadyStarted()
+    {
+        // Arrange
+        var eventId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
+        var booking = CreateValidBooking(eventId: eventId, userId: userId, status: BookingStatus.Pending);
+
+        var startedEvent = Event.LoadFromStorage(
+            id: eventId,
+            title: "Started Event",
+            description: "Test",
+            startAt: DateTime.UtcNow.AddDays(-1),
+            endAt: DateTime.UtcNow.AddDays(1),
+            totalSeats: 10,
+            availableSeats: 10);
+
+        _bookingFactory.Create(eventId, userId, Arg.Any<CancellationToken>())
+            .Returns(Result<Booking, Error>.FromSuccess(booking));
+
+        _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
+            .Returns(startedEvent);
+
+        // Act
+        var result = await _bookingService.Create(eventId, userId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
+        result.Error.Message.Should().Contain("началось");
+
+        await _bookingRepository.DidNotReceive().Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>());
+        await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
+        await _queueMessageRepository.DidNotReceive().Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Should_ReturnConflict_When_UserReachesBookingLimit()
+    {
+        // Arrange
+        var eventId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
+        var booking = CreateValidBooking(eventId: eventId, userId: userId, status: BookingStatus.Pending);
+        var @event = CreateTestEvent(eventId, totalSeats: 100, availableSeats: 100);
+
+        var existingBookings = Enumerable.Range(0, 10)
+            .Select(_ => CreateValidBooking(eventId: eventId, userId: userId))
+            .ToArray();
+
+        _bookingFactory.Create(eventId, userId, Arg.Any<CancellationToken>())
+            .Returns(Result<Booking, Error>.FromSuccess(booking));
+
+        _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
+            .Returns(@event);
+
+        _bookingRepository.GetBookingsByUserId(userId, Arg.Any<CancellationToken>())
+            .Returns(existingBookings);
+
+        // Act
+        var result = await _bookingService.Create(eventId, userId);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(ErrorCode.Conflict);
+        result.Error.Message.Should().Contain("активных броней");
+
+        await _bookingRepository.DidNotReceive().Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>());
+        await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
+        await _queueMessageRepository.DidNotReceive().Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Should_AllowBooking_When_OtherUserHasReachedLimit()
+    {
+        // Arrange
+        var eventId = Guid.CreateVersion7();
+        var limitedUserId = Guid.CreateVersion7();
+        var otherUserId = Guid.CreateVersion7();
+        var booking = CreateValidBooking(eventId: eventId, userId: otherUserId, status: BookingStatus.Pending);
+        var @event = CreateTestEvent(eventId, totalSeats: 100, availableSeats: 100);
+
+        var limitedUserExisting = Enumerable.Range(0, 10)
+            .Select(_ => CreateValidBooking(eventId: eventId, userId: limitedUserId))
+            .ToArray();
+
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result<Booking, Error>.FromSuccess(booking));
+
+        _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
+            .Returns(@event);
+
+        _bookingRepository.GetBookingsByUserId(limitedUserId, Arg.Any<CancellationToken>())
+            .Returns(limitedUserExisting);
+        _bookingRepository.GetBookingsByUserId(otherUserId, Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Booking>());
+
+        _bookingRepository.Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+        _queueMessageRepository.Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var limitedResult = await _bookingService.Create(eventId, limitedUserId);
+        var otherResult = await _bookingService.Create(eventId, otherUserId);
+
+        // Assert
+        limitedResult.IsFailure.Should().BeTrue();
+        limitedResult.Error.StatusCode.Should().Be(ErrorCode.Conflict);
+
+        otherResult.IsSuccess.Should().BeTrue();
+
+        await _bookingRepository.Received(1).Save(Arg.Is<Booking>(b => b.UserId == otherUserId), Arg.Any<CancellationToken>());
     }
 
     #endregion
@@ -400,7 +526,7 @@ public class BookingServiceTests
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<Booking, Error>.FromSuccess(newBooking));
 
         _bookingRepository.Save(Arg.Any<Booking>(), Arg.Any<CancellationToken>())
@@ -413,7 +539,7 @@ public class BookingServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _bookingService.Create(eventId);
+        var result = await _bookingService.Create(eventId, Guid.CreateVersion7());
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -437,7 +563,7 @@ public class BookingServiceTests
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result<Booking, Error>.FromSuccess(
                 CreateValidBooking(eventId: eventId)));
 
@@ -450,7 +576,7 @@ public class BookingServiceTests
         _queueMessageRepository.Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        var tasks = Enumerable.Range(0, 20).Select(_ => _bookingService.Create(eventId));
+        var tasks = Enumerable.Range(0, 20).Select(_ => _bookingService.Create(eventId, Guid.CreateVersion7()));
 
         // Act
         var results = await Task.WhenAll(tasks);
@@ -475,7 +601,7 @@ public class BookingServiceTests
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
 
-        _bookingFactory.Create(eventId, Arg.Any<CancellationToken>())
+        _bookingFactory.Create(eventId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result<Booking, Error>.FromSuccess(
                 CreateValidBooking(eventId: eventId)));
 
@@ -488,7 +614,7 @@ public class BookingServiceTests
         _queueMessageRepository.Create(Arg.Any<QueueMessage<BookingCreatedMessage>>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        var tasks = Enumerable.Range(0, 10).Select(_ => _bookingService.Create(eventId));
+        var tasks = Enumerable.Range(0, 10).Select(_ => _bookingService.Create(eventId, Guid.CreateVersion7()));
 
         // Act
         var results = await Task.WhenAll(tasks);
@@ -505,11 +631,13 @@ public class BookingServiceTests
     private static Booking CreateValidBooking(
         Guid? id = null,
         Guid? eventId = null,
+        Guid? userId = null,
         BookingStatus status = BookingStatus.Pending)
     {
         return Booking.LoadFromStorage(
             id: id ?? Guid.CreateVersion7(),
             eventId: eventId ?? Guid.CreateVersion7(),
+            userId: userId ?? Guid.CreateVersion7(),
             status: status,
             createdAt: DateTime.UtcNow,
             processedAt: null);

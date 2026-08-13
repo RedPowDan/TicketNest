@@ -5,6 +5,7 @@ using TicketNest.DataAccess.Events.Implementations;
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Models.Users;
 using TicketNest.IntegrationTests.Infrastructure;
 
 namespace TicketNest.IntegrationTests.DataAccess.Events.Implementations;
@@ -38,13 +39,9 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
+        var user = await CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: Guid.NewGuid(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(eventId: Guid.NewGuid(), userId: user.Id);
 
         // Act
         var act = async () => await repository.Save(booking);
@@ -60,13 +57,9 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id);
 
         var ct = new CancellationToken(canceled: true);
 
@@ -84,20 +77,11 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
-        var booking1 = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking1 = CreateBooking(@event.Id, user.Id);
 
-        var booking2 = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking2 = CreateBooking(@event.Id, user.Id);
 
         // Act
         await repository.Save(booking1);
@@ -120,22 +104,19 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
         var bookingId = Guid.NewGuid();
         var createdAt = DateTime.UtcNow;
 
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: createdAt,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id, id: bookingId);
 
         await repository.Save(booking);
 
         var updatedBooking = Booking.LoadFromStorage(
             id: bookingId,
             eventId: @event.Id,
+            userId: user.Id,
             status: BookingStatus.Confirmed,
             createdAt: createdAt,
             processedAt: DateTime.UtcNow);
@@ -180,22 +161,19 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
         var bookingId = Guid.NewGuid();
         var createdAt = DateTime.UtcNow;
 
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: createdAt,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id, id: bookingId);
 
         await repository.Save(booking);
 
         var updatedBooking = Booking.LoadFromStorage(
             id: bookingId,
             eventId: @event.Id,
+            userId: user.Id,
             status: BookingStatus.Confirmed,
             createdAt: createdAt,
             processedAt: DateTime.UtcNow);
@@ -218,13 +196,9 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
-        var booking = Booking.LoadFromStorage(
-            id: Guid.NewGuid(),
-            eventId: @event.Id,
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow,
-            processedAt: null);
+        var booking = CreateBooking(@event.Id, user.Id);
 
         await repository.Save(booking);
 
@@ -247,17 +221,14 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         await using var dbContext = CreateDbContext();
         var repository = new BookingRepository(dbContext);
         var @event = await CreateEvent(dbContext);
+        var user = await CreateUser(dbContext);
 
         var bookingId = Guid.NewGuid();
         var eventId = @event.Id;
+        var userId = user.Id;
         var createdAt = DateTime.UtcNow;
 
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            status: BookingStatus.Pending,
-            createdAt: createdAt,
-            processedAt: null);
+        var booking = CreateBooking(eventId, userId, id: bookingId);
 
         await repository.Save(booking);
 
@@ -268,6 +239,7 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         result.Should().NotBeNull();
         result!.Id.Should().Be(bookingId);
         result.EventId.Should().Be(eventId);
+        result.UserId.Should().Be(userId);
         result.Status.Should().Be(BookingStatus.Pending);
         result.CreatedAt.Should().BeCloseTo(createdAt, TimeSpan.FromSeconds(1));
         result.ProcessedAt.Should().BeNull();
@@ -295,5 +267,24 @@ public class BookingRepositoryTests : EventsPgDatabaseTestBase
         dbContext.Events.Add(EventMapper.ToPersistence(@event));
         await dbContext.SaveChangesAsync();
         return @event;
+    }
+
+    private static async Task<User> CreateUser(EventsDbContext dbContext)
+    {
+        var user = User.Create("booking-user", "hash", UserRole.User).Value;
+        dbContext.Users.Add(UserMapper.ToPersistence(user));
+        await dbContext.SaveChangesAsync();
+        return user;
+    }
+
+    private static Booking CreateBooking(Guid eventId, Guid userId, Guid? id = null, BookingStatus status = BookingStatus.Pending, DateTime? processedAt = null)
+    {
+        return Booking.LoadFromStorage(
+            id: id ?? Guid.NewGuid(),
+            eventId: eventId,
+            userId: userId,
+            status: status,
+            createdAt: DateTime.UtcNow,
+            processedAt: processedAt);
     }
 }

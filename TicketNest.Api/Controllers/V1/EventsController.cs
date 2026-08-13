@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TicketNest.Api.Exceptions;
 using TicketNest.Api.Mappers;
 using TicketNest.Api.Mappers.Bookings;
@@ -7,6 +8,7 @@ using TicketNest.Api.Models;
 using TicketNest.Api.Models.V1;
 using TicketNest.Api.Models.V1.Bookings;
 using TicketNest.Api.Models.V1.Events;
+using TicketNest.Api.Services;
 using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
 
@@ -15,7 +17,10 @@ namespace TicketNest.Api.Controllers.V1;
 [ApiController]
 [Route("[controller]")]
 [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status500InternalServerError)]
-public class EventsController(IEventService eventService, IBookingService bookingService) : BaseApiController
+public class EventsController(
+    IEventService eventService,
+    IBookingService bookingService,
+    ICurrentUser currentUser) : BaseApiController
 {
     /// <summary>
     /// Получить список всех событий
@@ -64,8 +69,11 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Создать событие
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ResultModel<EventResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ResultModel<EventResponse>>> Post([FromBody] EventRequest source, CancellationToken ct)
     {
         var createResult = await eventService.Create(
@@ -87,8 +95,11 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Изменить событие
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Put(Guid id, [FromBody] EventRequest source, CancellationToken ct)
     {
@@ -111,7 +122,10 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Удалить событие
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Delete(Guid id, CancellationToken ct)
     {
@@ -127,13 +141,17 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <summary>
     /// Создание бронирования на событие
     /// </summary>
+    [Authorize]
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Book(Guid id, CancellationToken ct)
     {
-        var createResult = await bookingService.Create(id, ct);
+        var user = currentUser.GetUser();
+        var createResult = await bookingService.Create(id, user.Id, ct);
         if (createResult.IsFailure)
         {
             ExceptionFactory.ThrowApiException(createResult.Error);

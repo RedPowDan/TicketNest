@@ -13,13 +13,16 @@ internal sealed class BookingService(
     IBookingFactory bookingFactory,
     IBookingRepository bookingRepository,
     IQueueMessageRepository queueMessageRepository,
-    IEventsRepository eventsRepository) : IBookingService
+    IEventsRepository eventsRepository,
+    IUserRepository userRepository) : IBookingService
 {
+    private const int MaxBookingsByUser = 10; 
+    
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
-    public async Task<Result<Booking, Error>> Create(Guid eventId, CancellationToken ct = default)
+    public async Task<Result<Booking, Error>> Create(Guid eventId, Guid userId, CancellationToken ct = default)
     {
-        var bookingCreateResult = await bookingFactory.Create(eventId, ct);
+        var bookingCreateResult = await bookingFactory.Create(eventId, userId, ct);
         if (bookingCreateResult.IsFailure)
         {
             return bookingCreateResult;
@@ -36,9 +39,16 @@ internal sealed class BookingService(
                 return new Error(message: "Событие не найдено", statusCode: ErrorCode.NotFound);
             }
 
-            if (!@event.TryReserveSeats())
+            if (@event.TryReserveSeats(DateTime.UtcNow) is { IsFailure: true } result)
             {
-                return new Error(message: "No available seats for this event", statusCode: ErrorCode.Conflict);
+                return result.Error;
+            }
+
+            var bookingsByUser = await bookingRepository.GetBookingsByUserId(userId, ct);
+            var activeBookingsByUser = bookingsByUser.Where(x => x.IsActive());
+            if (activeBookingsByUser.Count() >= MaxBookingsByUser)
+            {
+                return new Error(ErrorCode.Conflict, $"Невозможно забронировать более {MaxBookingsByUser} активных броней");
             }
 
             await bookingRepository.Save(booking, ct);
@@ -64,8 +74,38 @@ internal sealed class BookingService(
         return booking;
     }
 
+    public async Task<Result<Booking, Error>> Cancel(Guid bookingId, Guid userId, CancellationToken ct = default)
+    {
+        var initiator = await userRepository.Get(userId, ct);
+        if (initiator is null)
+        {
+            return new Error(ErrorCode.Unauthorized, "Текущий пользователь не найден");
+        }
+
+        var booking = await bookingRepository.Get(bookingId, ct);
+        if (booking is null)
+        {
+            return new Error(ErrorCode.NotFound, "Бронь не найдена");
+        }
+
+        var canCancel = booking.CanCancel(initiator);
+        if (canCancel.IsFailure)
+        {
+            return canCancel.Error;
+        }
+
+        booking.Cancel(DateTime.UtcNow);
+
+        await bookingRepository.Save(booking, ct);
+        
+        var message = QueueMessage<BookingCanceledMessage>.Create(queueName: QueueNames.BookingCancelledQueue, new BookingCanceledMessage(bookingId: bookingId));
+        await queueMessageRepository.Create(message, ct);
+
+        return booking;
+    }
+
     private static QueueMessage<BookingCreatedMessage> CreateMessage(Guid bookingId)
     {
-        return QueueMessage<BookingCreatedMessage>.Create(queueName: QueueNames.BookingQueue, new BookingCreatedMessage(bookingId: bookingId));
+        return QueueMessage<BookingCreatedMessage>.Create(queueName: QueueNames.BookingCreatedQueue, new BookingCreatedMessage(bookingId: bookingId));
     }
 }

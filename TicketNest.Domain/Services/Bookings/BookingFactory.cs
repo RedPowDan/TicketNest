@@ -8,7 +8,7 @@ namespace TicketNest.Domain.Services.Bookings;
 
 public class BookingFactory(IEventsRepository eventsRepository) : IBookingFactory
 {
-    public async Task<Result<Booking, Error>> Create(Guid eventId, CancellationToken ct = default)
+    public async Task<Result<Booking, Error>> Create(Guid eventId, Guid userId, CancellationToken ct = default)
     {
         var @event = await eventsRepository.Get(eventId, ct);
         if (@event is null)
@@ -16,6 +16,6 @@ public class BookingFactory(IEventsRepository eventsRepository) : IBookingFactor
             return new Error(message: "Событие не найдено", statusCode: ErrorCode.NotFound);
         }
 
-        return Booking.Create(eventId, createdAt: DateTime.UtcNow);
+        return Booking.Create(eventId, userId, createdAt: DateTime.UtcNow);
     }
 }

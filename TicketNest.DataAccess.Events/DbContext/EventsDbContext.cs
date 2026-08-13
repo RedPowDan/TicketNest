@@ -9,6 +9,8 @@ internal sealed class EventsDbContext : Microsoft.EntityFrameworkCore.DbContext
     
     public DbSet<PersistenceBooking> Bookings { get; set; } = null!;
 
+    public DbSet<PersistenceUser> Users { get; set; } = null!;
+
     public EventsDbContext(DbContextOptions<EventsDbContext> options) : base(options)
     {
     }

@@ -338,10 +338,10 @@ public class EventTests
         var eventEntity = CreateValidEvent();
 
         // Act
-        var success = eventEntity.TryReserveSeats(3);
+        var result = eventEntity.TryReserveSeats(DateTime.UtcNow, 3);
 
         // Assert
-        success.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         eventEntity.AvailableSeats.Should().Be(7);
     }
 
@@ -352,10 +352,10 @@ public class EventTests
         var eventEntity = CreateValidEvent();
 
         // Act
-        var success = eventEntity.TryReserveSeats(20);
+        var result = eventEntity.TryReserveSeats(DateTime.UtcNow, 20);
 
         // Assert
-        success.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         eventEntity.AvailableSeats.Should().Be(10);
     }
 

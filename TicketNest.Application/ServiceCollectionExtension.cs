@@ -2,7 +2,10 @@
 using TicketNest.Application.BackgroundServices;
 using TicketNest.Application.Services.Bookings;
 using TicketNest.Application.Services.Events;
+using TicketNest.Application.Services.Users;
 using TicketNest.Domain.Services.Bookings;
+using TicketNest.Domain.Services.Events;
+using TicketNest.Domain.Services.Users;
 
 namespace TicketNest.Application;
 
@@ -15,6 +18,7 @@ public static class ServiceCollectionExtension
                 .AddHostedServices()
                 .AddScoped<IEventService, EventService>()
                 .AddScoped<IBookingService, BookingService>()
+                .AddScoped<IUserService, UserService>()
             ;
     }
 
@@ -23,6 +27,8 @@ public static class ServiceCollectionExtension
         return services
                 .AddScoped<IBookingFactory, BookingFactory>()
                 .AddScoped<IBookingConfirmationService, BookingConfirmationService>()
+                .AddScoped<IEventReleaseSeatsService, EventReleaseSeatsService>()
+                .AddScoped<IUserFactory, UserFactory>()
             ;
     }
 
@@ -30,6 +36,7 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddHostedService<BookingConfirmationBackgroundService>()
+                .AddHostedService<BookingCancellationBackgroundService>()
             ;
     }
 }

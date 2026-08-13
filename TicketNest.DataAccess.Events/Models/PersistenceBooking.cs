@@ -8,6 +8,8 @@ internal sealed class PersistenceBooking
 
     public Guid EventId { get; set; }
 
+    public Guid UserId { get; set; }
+
     public BookingStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
@@ -15,4 +17,6 @@ internal sealed class PersistenceBooking
     public DateTime? ProcessedAt { get; set; }
 
     public PersistenceEvent Event { get; set; } = null!;
+
+    public PersistenceUser User { get; set; } = null!;
 }

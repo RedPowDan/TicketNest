@@ -40,9 +40,14 @@ namespace TicketNest.DataAccess.Events.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Bookings", (string)null);
                 });
@@ -76,6 +81,31 @@ namespace TicketNest.DataAccess.Events.Migrations
                     b.ToTable("Events", (string)null);
                 });
 
+            modelBuilder.Entity("TicketNest.DataAccess.Events.Models.PersistenceUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
+                });
+
             modelBuilder.Entity("TicketNest.DataAccess.Events.Models.PersistenceBooking", b =>
                 {
                     b.HasOne("TicketNest.DataAccess.Events.Models.PersistenceEvent", "Event")
@@ -84,7 +114,15 @@ namespace TicketNest.DataAccess.Events.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TicketNest.DataAccess.Events.Models.PersistenceUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TicketNest.DataAccess.Events.Models.PersistenceEvent", b =>

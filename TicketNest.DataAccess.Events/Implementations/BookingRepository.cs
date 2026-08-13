@@ -1,4 +1,5 @@
-﻿using TicketNest.DataAccess.Events.DbContext;
+﻿using Microsoft.EntityFrameworkCore;
+using TicketNest.DataAccess.Events.DbContext;
 using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.Domain.Models.Bookings;
 using TicketNest.Domain.Repositories;
@@ -36,5 +37,17 @@ internal sealed class BookingRepository(EventsDbContext dbContext) : IBookingRep
         return persistenceBooking == null
             ? null
             : BookingMapper.ToDomain(persistenceBooking);
+    }
+
+    /// <inheritdoc />
+    public async Task<Booking[]> GetBookingsByUserId(Guid userId, CancellationToken ct = default)
+    {
+        var persistenceBookings = await dbContext
+            .Bookings
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .ToArrayAsync(cancellationToken: ct);
+
+        return persistenceBookings.Select(BookingMapper.ToDomain).ToArray();
     }
 }
