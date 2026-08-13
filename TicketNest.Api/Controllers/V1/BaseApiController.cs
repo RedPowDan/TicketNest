@@ -23,11 +23,6 @@ public abstract class BaseApiController : ControllerBase
         return Ok(ResultModel<EmptyResultModel>.FromSuccess(EmptyResultModel));
     }
 
-    protected ActionResult<ResultModel<EmptyResultModel>> NoContent()
-    {
-        return base.NoContent();
-    }
-
     protected ActionResult<ResultModel<T>> Accepted<T>(string uri, T result) where T : class
     {
         return base.Accepted(uri, ResultModel<T>.FromSuccess(result));

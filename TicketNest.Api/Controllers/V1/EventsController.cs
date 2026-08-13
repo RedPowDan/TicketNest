@@ -148,12 +148,7 @@ public class EventsController(
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Book(Guid id, CancellationToken ct)
     {
-        var user = currentUser.User;
-        if (user is null)
-        {
-            throw new UnauthorizedException("Не удалось определить пользователя из контекста запроса");
-        }
-
+        var user = currentUser.GetUser();
         var createResult = await bookingService.Create(id, user.Id, ct);
         if (createResult.IsFailure)
         {

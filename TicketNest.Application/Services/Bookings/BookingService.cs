@@ -47,7 +47,7 @@ internal sealed class BookingService(
             var bookingsByUser = await bookingRepository.GetBookingsByUserId(userId, ct);
             if (bookingsByUser.Length > MaxBookingsByUser)
             {
-                return new Error(ErrorCode.Conflict, "Невозможно забронировать более 10 мест для события");
+                return new Error(ErrorCode.Conflict, $"Невозможно забронировать более {MaxBookingsByUser} мест для события");
             }
 
             await bookingRepository.Save(booking, ct);
