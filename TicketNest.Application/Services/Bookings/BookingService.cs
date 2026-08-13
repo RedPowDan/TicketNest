@@ -16,6 +16,8 @@ internal sealed class BookingService(
     IEventsRepository eventsRepository,
     IUserRepository userRepository) : IBookingService
 {
+    private const int MaxBookingsByUser = 10; 
+    
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
     public async Task<Result<Booking, Error>> Create(Guid eventId, Guid userId, CancellationToken ct = default)
@@ -37,9 +39,15 @@ internal sealed class BookingService(
                 return new Error(message: "Событие не найдено", statusCode: ErrorCode.NotFound);
             }
 
-            if (!@event.TryReserveSeats())
+            if (@event.TryReserveSeats(DateTime.UtcNow) is { IsFailure: true } result)
             {
-                return new Error(message: "No available seats for this event", statusCode: ErrorCode.Conflict);
+                return result.Error;
+            }
+
+            var bookingsByUser = await bookingRepository.GetBookingsByUserId(userId, ct);
+            if (bookingsByUser.Length > MaxBookingsByUser)
+            {
+                return new Error(ErrorCode.Conflict, "Невозможно забронировать более 10 мест для события");
             }
 
             await bookingRepository.Save(booking, ct);

@@ -1,4 +1,5 @@
-﻿using TicketNest.Shared;
+﻿using TicketNest.Domain.Constants;
+using TicketNest.Shared;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.Domain.Models.Events;
@@ -147,18 +148,23 @@ public class Event
         return UnitResult<string>.FromSuccess();
     }
 
-    public bool TryReserveSeats(int count = 1)
+    public UnitResult<Error> TryReserveSeats(DateTime now, int count = 1)
     {
         Ensure.NonNegative(count, nameof(count));
 
         if (count > AvailableSeats)
         {
-            return false;
+            return new Error(message: "Нет доступных мест для этого события", statusCode: ErrorCode.Conflict);
+        }
+
+        if (EventIsStarted(now))
+        {
+            return new Error(message: "Событие уже началось", statusCode: ErrorCode.BadRequest);
         }
 
         AvailableSeats -= count;
 
-        return true;
+        return UnitResult<Error>.FromSuccess();
     }
     
     public bool ReleaseSeats(int count = 1)
@@ -174,4 +180,6 @@ public class Event
 
         return true;
     }
+
+    private bool EventIsStarted(DateTime now) => StartAt <= now;
 }
