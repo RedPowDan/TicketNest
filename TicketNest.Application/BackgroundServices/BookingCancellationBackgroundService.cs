@@ -21,7 +21,7 @@ public class BookingCancellationBackgroundService(
             {
                 using var scope = scopeFactory.CreateScope();
                 var queueMessageRepository = scope.ServiceProvider.GetRequiredService<IQueueMessageRepository>();
-                var messages = await queueMessageRepository.GetAll<BookingCanceledMessage>(queueName: QueueNames.BookingQueue, ct);
+                var messages = await queueMessageRepository.GetAll<BookingCanceledMessage>(queueName: QueueNames.BookingCancelledQueue, ct);
                 if (!messages.Any())
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), ct);
@@ -56,7 +56,7 @@ public class BookingCancellationBackgroundService(
         if (result.IsFailure)
         {
             logger.LogError("Ошибка отмены брони {BookingId}. Подробности: {@ResultError}", bookingId, result.Error);
-        }    
+        }
 
         await queueMessageRepository.Commit(message.MessageId, ct);
 

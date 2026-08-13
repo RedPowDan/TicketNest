@@ -21,7 +21,7 @@ public class BookingConfirmationBackgroundService(
             {
                 using var scope = scopeFactory.CreateScope();
                 var queueMessageRepository = scope.ServiceProvider.GetRequiredService<IQueueMessageRepository>();
-                var messages = await queueMessageRepository.GetAll<BookingCreatedMessage>(queueName: QueueNames.BookingQueue, ct);
+                var messages = await queueMessageRepository.GetAll<BookingCreatedMessage>(queueName: QueueNames.BookingCreatedQueue, ct);
                 if (!messages.Any())
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), ct);

@@ -2,5 +2,6 @@
 
 public static class QueueNames
 {
-    public const string BookingQueue = "BookingQueue";
+    public const string BookingCreatedQueue = "BookingCreatedQueue";
+    public const string BookingCancelledQueue = "BookingCancelledQueue";
 }

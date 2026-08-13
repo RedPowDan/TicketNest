@@ -97,7 +97,7 @@ internal sealed class BookingService(
 
         await bookingRepository.Save(booking, ct);
         
-        var message = QueueMessage<BookingCanceledMessage>.Create(queueName: QueueNames.BookingQueue, new BookingCanceledMessage(bookingId: bookingId));
+        var message = QueueMessage<BookingCanceledMessage>.Create(queueName: QueueNames.BookingCancelledQueue, new BookingCanceledMessage(bookingId: bookingId));
         await queueMessageRepository.Create(message, ct);
 
         return booking;
@@ -105,6 +105,6 @@ internal sealed class BookingService(
 
     private static QueueMessage<BookingCreatedMessage> CreateMessage(Guid bookingId)
     {
-        return QueueMessage<BookingCreatedMessage>.Create(queueName: QueueNames.BookingQueue, new BookingCreatedMessage(bookingId: bookingId));
+        return QueueMessage<BookingCreatedMessage>.Create(queueName: QueueNames.BookingCreatedQueue, new BookingCreatedMessage(bookingId: bookingId));
     }
 }
