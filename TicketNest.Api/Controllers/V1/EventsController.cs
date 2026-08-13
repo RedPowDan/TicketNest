@@ -141,8 +141,10 @@ public class EventsController(
     /// <summary>
     /// Создание бронирования на событие
     /// </summary>
+    [Authorize]
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status409Conflict)]

@@ -98,4 +98,6 @@ public class Booking
 
         return UnitResult<Error>.FromSuccess();
     }
+
+    public bool IsActive() => Status is BookingStatus.Pending or BookingStatus.Confirmed;
 }
