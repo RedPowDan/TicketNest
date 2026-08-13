@@ -30,7 +30,7 @@ public sealed class EventReleaseSeatsService(IEventsRepository eventsRepository,
             }
 
             var isSuccess = @event.ReleaseSeats(count);
-            if (isSuccess)
+            if (!isSuccess)
             {
                 return new Error(ErrorCode.BadRequest, "Невозможно вернуть бронь");
             }

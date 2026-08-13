@@ -43,7 +43,7 @@ public class BookingCancellationBackgroundService(
         }
     }
 
-    private async Task HandleMessage(
+    internal async Task HandleMessage(
         QueueMessage<BookingCanceledMessage> message,
         IQueueMessageRepository queueMessageRepository,
         CancellationToken ct)
