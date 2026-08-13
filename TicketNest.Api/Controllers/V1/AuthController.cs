@@ -15,7 +15,7 @@ public class AuthController(IUserService userService) : BaseApiController
     /// Регистрация нового пользователя.
     /// </summary>
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ResultModel<EmptyResultModel>>> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
@@ -33,7 +33,7 @@ public class AuthController(IUserService userService) : BaseApiController
     /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(typeof(ResultModel<TokenResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ResultModel<TokenResponse>>> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         var result = await userService.Login(request.Login, request.Password, ct);

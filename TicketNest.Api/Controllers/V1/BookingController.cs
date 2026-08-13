@@ -18,7 +18,9 @@ public class BookingController(IBookingService bookingService, ICurrentUser curr
     /// Получить бронирование по идентификатору
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize]
     [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ResultModel<BookingResponse>>> Get(Guid id, CancellationToken ct = default)
     {
@@ -35,14 +37,14 @@ public class BookingController(IBookingService bookingService, ICurrentUser curr
     /// Отменить бронирование. Свою бронь может отменить любой пользователь,
     /// чужую — только администратор.
     /// </summary>
-    [HttpPost("{id:guid}/cancel")]
+    [HttpDelete("{id:guid}")]
     [Authorize]
-    [ProducesResponseType(typeof(ResultModel<BookingResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ResultModel<BookingResponse>>> Cancel(Guid id, CancellationToken ct)
+    public async Task<ActionResult<ResultModel<EmptyResultModel>>> Cancel(Guid id, CancellationToken ct)
     {
         var user = currentUser.GetUser();
 
@@ -52,6 +54,6 @@ public class BookingController(IBookingService bookingService, ICurrentUser curr
             ExceptionFactory.ThrowApiException(cancelResult.Error);
         }
 
-        return Success(BookingResponseMapper.Map(cancelResult.Value));
+        return NoContent();
     }
 }

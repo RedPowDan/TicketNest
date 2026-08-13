@@ -33,14 +33,9 @@ internal sealed class UserService(
     public async Task<Result<string, Error>> Login(string login, string password, CancellationToken ct = default)
     {
         var user = await userRepository.GetByLogin(login, ct);
-        if (user is null)
+        if (user is null || !passwordHasher.Verify(password, user.PasswordHash))
         {
-            return new Error(ErrorCode.Unauthorized, "Пользователь не найден");
-        }
-
-        if (!passwordHasher.Verify(password, user.PasswordHash))
-        {
-            return new Error(ErrorCode.Unauthorized, "Неверный пароль");
+            return new Error(ErrorCode.BadRequest, "Пользователь не найден");
         }
 
         var tokenUser = TokenUser.Create(user.Id, user.Login, user.Role.ToString());

@@ -97,7 +97,7 @@ public class UserServiceTests
     }
 
     [Test]
-    public async Task Login_WithUnknownLogin_Should_ReturnUnauthorized()
+    public async Task Login_WithUnknownLogin_Should_ReturnBadRequest()
     {
         // Arrange
         _userRepository.GetByLogin(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -108,12 +108,12 @@ public class UserServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorCode.Unauthorized);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
         _jwtTokenGenerator.DidNotReceive().GenerateToken(Arg.Any<TokenUser>());
     }
 
     [Test]
-    public async Task Login_WithWrongPassword_Should_ReturnUnauthorized()
+    public async Task Login_WithWrongPassword_Should_ReturnBadRequest()
     {
         // Arrange
         var user = User.LoadFromStorage(Guid.CreateVersion7(), "user1", "hash", UserRole.User);
@@ -128,7 +128,7 @@ public class UserServiceTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorCode.Unauthorized);
+        result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
         _jwtTokenGenerator.DidNotReceive().GenerateToken(Arg.Any<TokenUser>());
     }
 }
