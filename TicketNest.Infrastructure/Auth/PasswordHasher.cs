@@ -12,4 +12,9 @@ internal sealed class PasswordHasher : IPasswordHasher
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
         return Convert.ToHexString(bytes);
     }
+
+    public bool Verify(string password, string hash)
+    {
+        return HashPassword(password) == hash;
+    }
 }
