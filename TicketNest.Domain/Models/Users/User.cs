@@ -43,7 +43,7 @@ public class User
         return new User(id, login, passwordHash, role);
     }
 
-    public static Result<User, string> Create(string login, string passwordHash, UserRole role)
+    internal static Result<User, string> Create(string login, string passwordHash, UserRole role)
     {
         if (CanCreate(login, passwordHash) is { IsFailure: true } validation)
         {
@@ -62,7 +62,7 @@ public class User
 
         if (string.IsNullOrWhiteSpace(passwordHash))
         {
-            return "Хеш пароля не должен быть пустым";
+            return "Пароль не должен быть пустым";
         }
 
         return UnitResult<string>.FromSuccess();
