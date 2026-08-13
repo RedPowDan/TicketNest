@@ -54,7 +54,7 @@ public class BookingCancellationBackgroundServiceTests
         var bookingId = Guid.CreateVersion7();
         var messageId = Guid.CreateVersion7();
         var message = QueueMessage<BookingCanceledMessage>.LoadFromStorage(
-            queueName: QueueNames.BookingQueue,
+            queueName: QueueNames.BookingCancelledQueue,
             messageId: messageId,
             data: new BookingCanceledMessage(bookingId));
 
@@ -76,7 +76,7 @@ public class BookingCancellationBackgroundServiceTests
         var bookingId = Guid.CreateVersion7();
         var messageId = Guid.CreateVersion7();
         var message = QueueMessage<BookingCanceledMessage>.LoadFromStorage(
-            queueName: QueueNames.BookingQueue,
+            queueName: QueueNames.BookingCancelledQueue,
             messageId: messageId,
             data: new BookingCanceledMessage(bookingId));
 

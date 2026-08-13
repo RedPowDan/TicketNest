@@ -83,7 +83,7 @@ public class BookingServiceTests
         await _queueMessageRepository.Received(1).Create(
             Arg.Is<QueueMessage<BookingCreatedMessage>>(m =>
                 m.Data.BookingId == booking.Id &&
-                m.QueueName == QueueNames.BookingQueue),
+                m.QueueName == QueueNames.BookingCreatedQueue),
             Arg.Any<CancellationToken>());
     }
 

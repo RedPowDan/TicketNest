@@ -22,14 +22,14 @@ public class MemoryQueueMessageRepositoryTests
     {
         // Arrange
         var message = QueueMessage<BookingCreatedMessage>.Create(
-            QueueNames.BookingQueue,
+            QueueNames.BookingCreatedQueue,
             new BookingCreatedMessage(Guid.NewGuid()));
 
         // Act
         await _repository.Create(message);
 
         // Assert
-        var retrieved = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingQueue);
+        var retrieved = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingCreatedQueue);
         retrieved.Should().NotBeNull();
         retrieved!.Data.BookingId.Should().Be(message.Data.BookingId);
     }
@@ -40,17 +40,17 @@ public class MemoryQueueMessageRepositoryTests
         // Arrange
         var bookingId = Guid.NewGuid();
         var message = QueueMessage<BookingCreatedMessage>.Create(
-            QueueNames.BookingQueue,
+            QueueNames.BookingCreatedQueue,
             new BookingCreatedMessage(bookingId));
         await _repository.Create(message);
 
         // Act
-        var result = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingQueue);
+        var result = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingCreatedQueue);
 
         // Assert
         result.Should().NotBeNull();
         result!.Data.BookingId.Should().Be(bookingId);
-        result.QueueName.Should().Be(QueueNames.BookingQueue);
+        result.QueueName.Should().Be(QueueNames.BookingCreatedQueue);
     }
 
     [Test]
@@ -68,13 +68,13 @@ public class MemoryQueueMessageRepositoryTests
     {
         // Arrange
         var message = QueueMessage<BookingCreatedMessage>.Create(
-            QueueNames.BookingQueue,
+            QueueNames.BookingCreatedQueue,
             new BookingCreatedMessage(Guid.NewGuid()));
         await _repository.Create(message);
 
         // Act
-        var first = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingQueue);
-        var second = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingQueue);
+        var first = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingCreatedQueue);
+        var second = await _repository.Get<BookingCreatedMessage>(QueueNames.BookingCreatedQueue);
 
         // Assert
         first.Should().NotBeNull();
@@ -88,13 +88,13 @@ public class MemoryQueueMessageRepositoryTests
         for (var i = 0; i < 3; i++)
         {
             var message = QueueMessage<BookingCreatedMessage>.Create(
-                QueueNames.BookingQueue,
+                QueueNames.BookingCreatedQueue,
                 new BookingCreatedMessage(Guid.NewGuid()));
             await _repository.Create(message);
         }
 
         // Act
-        var messages = await _repository.GetAll<BookingCreatedMessage>(QueueNames.BookingQueue);
+        var messages = await _repository.GetAll<BookingCreatedMessage>(QueueNames.BookingCreatedQueue);
 
         // Assert
         messages.Should().HaveCount(3);
