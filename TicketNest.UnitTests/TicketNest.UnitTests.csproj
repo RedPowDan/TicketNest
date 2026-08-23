@@ -27,11 +27,4 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\TicketNest.Application\TicketNest.Application.csproj"/>
-        <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj"/>
-        <ProjectReference Include="..\TicketNest.DataAccess.Queue\TicketNest.DataAccess.Queue.csproj"/>
-        <ProjectReference Include="..\TicketNest.Infrastructure\TicketNest.Infrastructure.csproj"/>
-    </ItemGroup>
-
 </Project>
