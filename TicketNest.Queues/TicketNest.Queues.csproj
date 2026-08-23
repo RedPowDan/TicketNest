@@ -7,14 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
       <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
       <ProjectReference Include="..\TicketNest.Kafka\TicketNest.Kafka.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
 </Project>
