@@ -1,7 +1,7 @@
-﻿using TicketNest.DataAccess.Events1.Models;
+﻿using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Events.Models.Events;
 
-namespace TicketNest.DataAccess.Events1.Mappers;
+namespace TicketNest.DataAccess.Events.Mappers;
 
 internal static class EventMapper
 {

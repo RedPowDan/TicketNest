@@ -18,7 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TicketNest.Application.Events\TicketNest.Application.Events.csproj" />
-      <ProjectReference Include="..\TicketNest.DataAccess.Events1\TicketNest.DataAccess.Events1.csproj" />
+      <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
     </ItemGroup>
 
 </Project>

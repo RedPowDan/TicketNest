@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TicketNest.DataAccess.Events1.Migrations
+namespace TicketNest.DataAccess.Events.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

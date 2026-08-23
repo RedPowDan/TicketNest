@@ -34,7 +34,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Application.Auth
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Domain.Events", "TicketNest.Domain.Events\TicketNest.Domain.Events.csproj", "{383EDF03-E7CB-43F3-AD0C-39D264DAE00D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.DataAccess.Events1", "TicketNest.DataAccess.Events1\TicketNest.DataAccess.Events1.csproj", "{FBF9810F-0470-4924-B2B7-8E1EC36F38D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.DataAccess.Events", "TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj", "{FBF9810F-0470-4924-B2B7-8E1EC36F38D0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Application.Events", "TicketNest.Application.Events\TicketNest.Application.Events.csproj", "{B7A99418-B34B-428E-B06E-42A6BD6E6F7C}"
 EndProject

@@ -1,4 +1,4 @@
-﻿namespace TicketNest.DataAccess.Events1.Models;
+﻿namespace TicketNest.DataAccess.Events.Models;
 
 internal sealed class PersistenceEvent
 {

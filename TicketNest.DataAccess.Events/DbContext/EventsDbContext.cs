@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TicketNest.DataAccess.Events1.Models;
+using TicketNest.DataAccess.Events.Models;
 
-namespace TicketNest.DataAccess.Events1.DbContext;
+namespace TicketNest.DataAccess.Events.DbContext;
 
 internal sealed class EventsDbContext : Microsoft.EntityFrameworkCore.DbContext
 {

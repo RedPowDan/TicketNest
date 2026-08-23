@@ -1,5 +1,5 @@
 ﻿using TicketNest.Application.Events;
-using TicketNest.DataAccess.Events1;
+using TicketNest.DataAccess.Events;
 using TicketNest.Events.Api.DI;
 using TicketNest.Events.Api.Infrastructure;
 using TicketNest.Events.Api.Middlewares;

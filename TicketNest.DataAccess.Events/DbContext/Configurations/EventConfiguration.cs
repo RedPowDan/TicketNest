@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TicketNest.DataAccess.Events1.Models;
+using TicketNest.DataAccess.Events.Models;
 
-namespace TicketNest.DataAccess.Events1.DbContext.Configurations;
+namespace TicketNest.DataAccess.Events.DbContext.Configurations;
 
 internal sealed class EventConfiguration : IEntityTypeConfiguration<PersistenceEvent>
 {

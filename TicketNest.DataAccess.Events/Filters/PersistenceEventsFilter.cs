@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
-using TicketNest.DataAccess.Events1.Models;
+using TicketNest.DataAccess.Events.Models;
 using TicketNest.Domain.Events.Filters;
 
-namespace TicketNest.DataAccess.Events1.Filters;
+namespace TicketNest.DataAccess.Events.Filters;
 
 internal sealed class PersistenceEventsFilter
 {

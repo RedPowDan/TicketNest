@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TicketNest.DataAccess.Events1.DbContext;
-using TicketNest.DataAccess.Events1.Filters;
-using TicketNest.DataAccess.Events1.Mappers;
+using TicketNest.DataAccess.Events.DbContext;
+using TicketNest.DataAccess.Events.Filters;
+using TicketNest.DataAccess.Events.Mappers;
 using TicketNest.Domain.Events.Filters;
 using TicketNest.Domain.Events.Models;
 using TicketNest.Domain.Events.Models.Events;
@@ -9,7 +9,7 @@ using TicketNest.Domain.Events.Pagination;
 using TicketNest.Domain.Events.Repositories;
 using TicketNest.Shared.Expressions;
 
-namespace TicketNest.DataAccess.Events1.Implementations;
+namespace TicketNest.DataAccess.Events.Implementations;
 
 internal sealed class EventRepository(EventsDbContext dbContext) : IEventsRepository
 {

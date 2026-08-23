@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using TicketNest.DataAccess.Events1.DbContext;
+using TicketNest.DataAccess.Events.DbContext;
 
 #nullable disable
 
-namespace TicketNest.DataAccess.Events1.Migrations
+namespace TicketNest.DataAccess.Events.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
     partial class EventsDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace TicketNest.DataAccess.Events1.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TicketNest.DataAccess.Events1.Models.PersistenceEvent", b =>
+            modelBuilder.Entity("TicketNest.DataAccess.Events.Models.PersistenceEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");

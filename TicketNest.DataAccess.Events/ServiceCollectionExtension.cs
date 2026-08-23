@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TicketNest.DataAccess.Events1.DbContext;
-using TicketNest.DataAccess.Events1.Implementations;
+using TicketNest.DataAccess.Events.DbContext;
+using TicketNest.DataAccess.Events.Implementations;
 using TicketNest.Domain.Events.Repositories;
 
-namespace TicketNest.DataAccess.Events1;
+namespace TicketNest.DataAccess.Events;
 
 public static class ServiceCollectionExtension
 {

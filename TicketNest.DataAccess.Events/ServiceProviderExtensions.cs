@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TicketNest.DataAccess.Events1.DbContext;
+using TicketNest.DataAccess.Events.DbContext;
 
-namespace TicketNest.DataAccess.Events1;
+namespace TicketNest.DataAccess.Events;
 
 public static class ServiceProviderExtensions
 {
