@@ -1,5 +1,6 @@
 using FluentAssertions;
 using TicketNest.Domain.Services.Auth;
+using TicketNest.Shared;
 
 namespace TicketNest.UnitTests.Domain;
 

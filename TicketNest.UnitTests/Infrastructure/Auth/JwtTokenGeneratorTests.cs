@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TicketNest.Domain.Services.Auth;
 using TicketNest.Infrastructure.Auth;
+using TicketNest.Shared;
 
 namespace TicketNest.UnitTests.Infrastructure.Auth;
 

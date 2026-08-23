@@ -1,4 +1,6 @@
-namespace TicketNest.Domain.Services.Auth;
+using TicketNest.Shared.Guard;
+
+namespace TicketNest.Shared;
 
 /// <summary>
 /// Данные пользователя, которые используются при формировании JWT-токена.

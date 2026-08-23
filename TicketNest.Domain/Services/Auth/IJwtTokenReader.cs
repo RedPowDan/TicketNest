@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using TicketNest.Shared;
 
 namespace TicketNest.Domain.Services.Auth;
 

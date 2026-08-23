@@ -2,6 +2,7 @@ using TicketNest.Api.Exceptions;
 using TicketNest.Api.Mappers;
 using TicketNest.Domain.Models.Users;
 using TicketNest.Domain.Services.Auth;
+using TicketNest.Shared;
 
 namespace TicketNest.Api.Services;
 

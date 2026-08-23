@@ -7,6 +7,7 @@ using TicketNest.Domain.Models.Users;
 using TicketNest.Domain.Repositories;
 using TicketNest.Domain.Services.Auth;
 using TicketNest.Domain.Services.Users;
+using TicketNest.Shared;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.UnitTests.Application.Services.Users;

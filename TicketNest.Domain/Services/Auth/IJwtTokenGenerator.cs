@@ -1,3 +1,5 @@
+using TicketNest.Shared;
+
 namespace TicketNest.Domain.Services.Auth;
 
 /// <summary>
