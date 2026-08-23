@@ -7,6 +7,8 @@ internal sealed class BookingsDbContext : Microsoft.EntityFrameworkCore.DbContex
 {
     public DbSet<PersistenceBooking> Bookings { get; set; } = null!;
 
+    public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
+
     public BookingsDbContext(DbContextOptions<BookingsDbContext> options) : base(options)
     {
     }

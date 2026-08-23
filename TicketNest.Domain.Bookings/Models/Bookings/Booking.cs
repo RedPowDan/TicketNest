@@ -1,4 +1,5 @@
 ﻿using TicketNest.Domain.Bookings.Constants;
+using TicketNest.Domain.Bookings.Models.Bookings.DomainEvents;
 using TicketNest.Domain.Bookings.Models.Users;
 using TicketNest.Shared.Objects;
 
@@ -21,6 +22,8 @@ public class Booking
 
     public DateTime? ProcessedAt { get; private set; }
 
+    private List<IBookingEvent> _events = [];
+
     private Booking(Guid id, Guid eventId, Guid userId, BookingStatus status, DateTime createdAt, DateTime? processedAt)
     {
         Id = id;
@@ -40,9 +43,19 @@ public class Booking
     {
         Ensure.That(createdAt.Kind == DateTimeKind.Utc, "CreatedAt должен иметь временную зону UTC");
 
-        return new Booking(id: Guid.CreateVersion7(), eventId: eventId, userId: userId, status: BookingStatus.Pending, createdAt: createdAt, processedAt: null);
+        var newBooking = new Booking(
+            id: Guid.CreateVersion7(),
+            eventId: eventId,
+            userId: userId,
+            status: BookingStatus.Pending,
+            createdAt: createdAt,
+            processedAt: null);
+
+        newBooking.AddDomainEvent(new BookingCreated(bookingId: newBooking.Id, eventId: newBooking.EventId));
+
+        return newBooking;
     }
-    
+
     internal void Confirm(DateTime processedAt)
     {
         Ensure.That(processedAt.Kind == DateTimeKind.Utc, "CreatedAt должен иметь временную зону UTC");
@@ -59,6 +72,8 @@ public class Booking
 
         Status = BookingStatus.Rejected;
         ProcessedAt = processedAt;
+
+        AddDomainEvent(new BookingRejected(bookingId: Id, eventId: EventId));
     }
 
     public void Cancel(DateTime processedAt)
@@ -68,6 +83,8 @@ public class Booking
 
         Status = BookingStatus.Canceled;
         ProcessedAt = processedAt;
+
+        AddDomainEvent(new BookingCanceled(bookingId: Id, eventId: EventId));
     }
 
     /// <summary>
@@ -99,4 +116,17 @@ public class Booking
     }
 
     public bool IsActive() => Status is BookingStatus.Pending or BookingStatus.Confirmed;
+
+    private void AddDomainEvent(IBookingEvent bookingEvent)
+    {
+        _events.Add(bookingEvent);
+    }
+
+    // Вызывать только в DataAccess слое
+    public void Saved()
+    {
+        _events = [];
+    }
+
+    public IReadOnlyCollection<IBookingEvent> GetEvents() => _events.ToArray();
 }
