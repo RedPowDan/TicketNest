@@ -1,0 +1,47 @@
+﻿using System.Linq.Expressions;
+using TicketNest.DataAccess.Events1.Models;
+using TicketNest.Domain.Events.Filters;
+
+namespace TicketNest.DataAccess.Events1.Filters;
+
+internal sealed class PersistenceEventsFilter
+{
+    public string? Title { get; }
+
+    public DateTime? From { get; }
+
+    public DateTime? To { get; }
+
+    private PersistenceEventsFilter(string? title, DateTime? from, DateTime? to)
+    {
+        Title = title;
+        From = from;
+        To = to;
+    }
+
+    public static PersistenceEventsFilter CreateFrom(EventsFilter source)
+    {
+        return new PersistenceEventsFilter(
+            title: source.Title,
+            from: source.From,
+            to: source.To);
+    }
+
+    public IEnumerable<Expression<Func<PersistenceEvent, bool>>> GetFilterExpressions()
+    {
+        if (Title != null)
+        {
+            yield return x => x.Title.Contains(Title);
+        }
+
+        if (From.HasValue)
+        {
+            yield return x => x.StartAt >= From.Value;
+        }
+
+        if (To.HasValue)
+        {
+            yield return x => x.EndAt <= To.Value;
+        }
+    }
+}
