@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using TicketNest.Domain.Services.Auth;
+using TicketNest.Domain.Auth.Services.Auth;
 using TicketNest.Shared.Guard;
 
 namespace TicketNest.Infrastructure.Auth;

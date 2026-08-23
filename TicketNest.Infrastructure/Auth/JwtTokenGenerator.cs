@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using TicketNest.Domain.Services.Auth;
+using TicketNest.Domain.Auth.Services.Auth;
 using TicketNest.Shared.Guard;
 
 namespace TicketNest.Infrastructure.Auth;
