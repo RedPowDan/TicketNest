@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TicketNest.DataAccess.Bookings.DbContext;
+using TicketNest.DataAccess.Bookings.Outbox.Mappers;
+using TicketNest.DataAccess.Bookings.Outbox.PersistenceEvents;
 using TicketNest.Domain.Bookings.Models.Bookings.DomainEvents;
 using TicketNest.Domain.Bookings.Outbox;
 using TicketNest.Domain.Bookings.Repositories;
@@ -21,12 +23,13 @@ internal sealed class OutboxRepository(BookingsDbContext dbContext) : IOutboxRep
     {
         Ensure.NotNull(domainEvent);
 
-        var content = JsonSerializer.Serialize(domainEvent, domainEvent.GetType(), JsonOptions);
+        var persistenceEvent = OutboxEventMapper.ToPersistence(domainEvent);
+        var content = JsonSerializer.Serialize(persistenceEvent, persistenceEvent.GetType(), JsonOptions);
 
         dbContext.OutboxMessages.Add(new TicketNest.DataAccess.Bookings.Models.OutboxMessage
         {
             Id = Guid.NewGuid(),
-            Type = domainEvent.GetType().AssemblyQualifiedName!,
+            Type = persistenceEvent.GetType().AssemblyQualifiedName!,
             Content = content,
             CreatedAt = DateTime.UtcNow,
             Status = Models.OutboxMessage.OutboxStatus.Pending,
@@ -80,11 +83,13 @@ internal sealed class OutboxRepository(BookingsDbContext dbContext) : IOutboxRep
 
     private static OutboxMessage ToDomain(TicketNest.DataAccess.Bookings.Models.OutboxMessage entity)
     {
-        var eventType = Type.GetType(entity.Type)
+        var persistenceType = Type.GetType(entity.Type)
             ?? throw new InvalidOperationException($"Тип события не найден: {entity.Type}");
 
-        var domainEvent = JsonSerializer.Deserialize(entity.Content, eventType, JsonOptions) as IBookingEvent
+        var persistenceEvent = JsonSerializer.Deserialize(entity.Content, persistenceType, JsonOptions) as BookingPersistenceEvent
             ?? throw new InvalidOperationException($"Не удалось десериализовать событие {entity.Type}");
+
+        var domainEvent = OutboxEventMapper.ToDomain(persistenceEvent);
 
         return new OutboxMessage(entity.Id, domainEvent);
     }
