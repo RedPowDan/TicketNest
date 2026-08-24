@@ -19,5 +19,9 @@
         <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
 
 </Project>

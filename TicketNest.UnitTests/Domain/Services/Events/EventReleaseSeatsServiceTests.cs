@@ -1,11 +1,9 @@
 using FluentAssertions;
 using NSubstitute;
-using TicketNest.Domain.Constants;
-using TicketNest.Domain.Models;
-using TicketNest.Domain.Models.Bookings;
-using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.Repositories;
-using TicketNest.Domain.Services.Events;
+using TicketNest.Domain.Events.Constants;
+using TicketNest.Domain.Events.Models.Events;
+using TicketNest.Domain.Events.Repositories;
+using TicketNest.Domain.Events.Services.Events;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.UnitTests.Domain.Services.Events;
@@ -13,31 +11,21 @@ namespace TicketNest.UnitTests.Domain.Services.Events;
 [TestFixture]
 public class EventReleaseSeatsServiceTests
 {
-    private IBookingRepository _bookingRepository = null!;
     private IEventsRepository _eventsRepository = null!;
     private EventReleaseSeatsService _service = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _bookingRepository = Substitute.For<IBookingRepository>();
         _eventsRepository = Substitute.For<IEventsRepository>();
-        _service = new EventReleaseSeatsService(_eventsRepository, _bookingRepository);
+        _service = new EventReleaseSeatsService(_eventsRepository);
     }
 
     [Test]
-    public async Task ReleaseSeats_WithBookingId_Should_ReleaseAndSave_When_BookingAndEventExist()
+    public async Task ReleaseSeats_Should_ReleaseAndSave_When_EventExists()
     {
         // Arrange
-        var bookingId = Guid.CreateVersion7();
         var eventId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
         var @event = Event.LoadFromStorage(
             id: eventId,
             title: "Test",
@@ -47,15 +35,13 @@ public class EventReleaseSeatsServiceTests
             totalSeats: 10,
             availableSeats: 5);
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
+        var result = await _service.ReleaseSeats(eventId, ct: CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -67,15 +53,7 @@ public class EventReleaseSeatsServiceTests
     public async Task ReleaseSeats_WithCount_Should_ReleaseRequestedNumberOfSeats()
     {
         // Arrange
-        var bookingId = Guid.CreateVersion7();
         var eventId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
         var @event = Event.LoadFromStorage(
             id: eventId,
             title: "Test",
@@ -85,15 +63,13 @@ public class EventReleaseSeatsServiceTests
             totalSeats: 10,
             availableSeats: 5);
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.ReleaseSeats(bookingId, count: 2, ct: CancellationToken.None);
+        var result = await _service.ReleaseSeats(eventId, count: 2, ct: CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -102,46 +78,16 @@ public class EventReleaseSeatsServiceTests
     }
 
     [Test]
-    public async Task ReleaseSeats_WithBookingId_Should_ReturnNotFound_When_BookingDoesNotExist()
+    public async Task ReleaseSeats_Should_ReturnNotFound_When_EventDoesNotExist()
     {
         // Arrange
-        var bookingId = Guid.CreateVersion7();
-
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns((Booking?)null);
-
-        // Act
-        var result = await _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.StatusCode.Should().Be(ErrorCode.NotFound);
-        result.Error.Message.Should().Contain(bookingId.ToString());
-
-        await _eventsRepository.DidNotReceive().Save(Arg.Any<Event>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task ReleaseSeats_WithBookingId_Should_ReturnNotFound_When_EventDoesNotExist()
-    {
-        // Arrange
-        var bookingId = Guid.CreateVersion7();
         var eventId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns((Event?)null);
 
         // Act
-        var result = await _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
+        var result = await _service.ReleaseSeats(eventId, ct: CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -152,18 +98,10 @@ public class EventReleaseSeatsServiceTests
     }
 
     [Test]
-    public async Task ReleaseSeats_WithBookingId_Should_ReturnBadRequest_When_SeatsCannotBeReleased()
+    public async Task ReleaseSeats_Should_ReturnBadRequest_When_SeatsCannotBeReleased()
     {
         // Arrange
-        var bookingId = Guid.CreateVersion7();
         var eventId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
         var @event = Event.LoadFromStorage(
             id: eventId,
             title: "Test",
@@ -173,15 +111,13 @@ public class EventReleaseSeatsServiceTests
             totalSeats: 10,
             availableSeats: 10);
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(@event);
         _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
+        var result = await _service.ReleaseSeats(eventId, ct: CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -192,41 +128,20 @@ public class EventReleaseSeatsServiceTests
     }
 
     [Test]
-    public async Task ReleaseSeats_WithBookingId_Should_ReturnBadRequest_When_RepositoryThrows()
+    public async Task ReleaseSeats_Should_ReturnBadRequest_When_RepositoryThrows()
     {
         // Arrange
-        var bookingId = Guid.CreateVersion7();
         var eventId = Guid.CreateVersion7();
-        var booking = Booking.LoadFromStorage(
-            id: bookingId,
-            eventId: eventId,
-            userId: Guid.CreateVersion7(),
-            status: BookingStatus.Pending,
-            createdAt: DateTime.UtcNow.AddMinutes(-5),
-            processedAt: null);
 
-        _bookingRepository.Get(bookingId, Arg.Any<CancellationToken>())
-            .Returns(booking);
         _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
             .Returns(ValueTask.FromException<Event?>(new InvalidOperationException("db error")));
 
         // Act
-        var result = await _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
+        var result = await _service.ReleaseSeats(eventId, ct: CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.StatusCode.Should().Be(ErrorCode.BadRequest);
         result.Error.Message.Should().Be("Неизвестная ошибка отмены брони");
-    }
-
-    [Test]
-    public async Task ReleaseSeats_WithEmptyBookingId_Should_Throw()
-    {
-        // Arrange
-        var bookingId = Guid.Empty;
-
-        // Act & Assert
-        var act = () => _service.ReleaseSeats(bookingId, ct: CancellationToken.None);
-        await act.Should().ThrowAsync<ArgumentException>();
     }
 }

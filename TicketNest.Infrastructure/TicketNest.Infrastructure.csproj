@@ -16,4 +16,9 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
+
 </Project>

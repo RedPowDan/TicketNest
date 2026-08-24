@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using TicketNest.DataAccess.Events.Implementations;
-using TicketNest.Domain.Filters;
-using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.Pagination;
+using TicketNest.Domain.Events.Filters;
+using TicketNest.Domain.Events.Models.Events;
+using TicketNest.Domain.Events.Pagination;
 using TicketNest.IntegrationTests.Infrastructure;
 
 namespace TicketNest.IntegrationTests.DataAccess.Events.Implementations;

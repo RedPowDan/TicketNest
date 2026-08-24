@@ -1,7 +1,7 @@
 using FluentAssertions;
-using TicketNest.DataAccess.Events.Mappers;
-using TicketNest.DataAccess.Events.Models;
-using TicketNest.Domain.Models.Users;
+using TicketNest.DataAccess.Auth.Mappers;
+using TicketNest.DataAccess.Auth.Models;
+using TicketNest.Domain.Auth.Models.Users;
 
 namespace TicketNest.UnitTests.DataAccess.Events.Mappers;
 

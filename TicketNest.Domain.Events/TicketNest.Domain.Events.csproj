@@ -10,4 +10,9 @@
       <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
+
 </Project>

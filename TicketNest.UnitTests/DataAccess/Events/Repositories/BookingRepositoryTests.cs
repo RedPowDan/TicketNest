@@ -1,11 +1,10 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using TicketNest.DataAccess.Events.DbContext;
-using TicketNest.DataAccess.Events.Implementations;
-using TicketNest.DataAccess.Events.Mappers;
-using TicketNest.Domain.Models.Bookings;
-using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.Models.Users;
+using NSubstitute;
+using TicketNest.DataAccess.Bookings.DbContext;
+using TicketNest.DataAccess.Bookings.Implementations;
+using TicketNest.Domain.Bookings.Models.Bookings;
+using TicketNest.Domain.Bookings.Repositories;
 
 namespace TicketNest.UnitTests.DataAccess.Events.Repositories;
 
@@ -14,30 +13,13 @@ public class BookingRepositoryTests
 {
     private readonly string _databaseName = $"BookingRepositoryTests_{Guid.NewGuid()}";
 
-    private EventsDbContext CreateDbContext()
+    private BookingsDbContext CreateDbContext()
     {
-        var options = new DbContextOptionsBuilder<EventsDbContext>()
+        var options = new DbContextOptionsBuilder<BookingsDbContext>()
             .UseInMemoryDatabase(_databaseName)
             .Options;
 
-        return new EventsDbContext(options);
-    }
-
-    private static Event CreateEvent(EventsDbContext dbContext, int totalSeats = 100)
-    {
-        var eventResult = Event.Create("Test Event", null, DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(2), totalSeats);
-        var @event = eventResult.Value;
-        dbContext.Events.Add(EventMapper.ToPersistence(@event));
-        dbContext.SaveChanges();
-        return @event;
-    }
-
-    private static User CreateUser(EventsDbContext dbContext)
-    {
-        var user = User.Create("user01", "hash", UserRole.User).Value;
-        dbContext.Users.Add(UserMapper.ToPersistence(user));
-        dbContext.SaveChanges();
-        return user;
+        return new BookingsDbContext(options);
     }
 
     private static Booking CreateBooking(Guid eventId, Guid userId)
@@ -54,43 +36,33 @@ public class BookingRepositoryTests
     [Test]
     public async Task Save_Should_CreateNewBooking_When_BookingDoesNotExist()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new BookingRepository(dbContext);
-        var @event = CreateEvent(dbContext);
-        var user = CreateUser(dbContext);
+        var outbox = Substitute.For<IOutboxRepository>();
+        var repository = new BookingRepository(dbContext, outbox);
+        var booking = CreateBooking(Guid.NewGuid(), Guid.NewGuid());
 
-        var booking = CreateBooking(@event.Id, user.Id);
-
-        // Act
         await repository.Save(booking);
 
-        // Assert
         var saved = await dbContext.Bookings.FindAsync(booking.Id);
         saved.Should().NotBeNull();
-        saved!.EventId.Should().Be(@event.Id);
-        saved.UserId.Should().Be(user.Id);
+        saved!.EventId.Should().Be(booking.EventId);
+        saved.UserId.Should().Be(booking.UserId);
         saved.Status.Should().Be(BookingStatus.Pending);
     }
 
     [Test]
     public async Task Save_Should_UpdateExistingBooking_When_BookingExists()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new BookingRepository(dbContext);
-        var @event = CreateEvent(dbContext);
-        var user = CreateUser(dbContext);
-
-        var booking = CreateBooking(@event.Id, user.Id);
+        var outbox = Substitute.For<IOutboxRepository>();
+        var repository = new BookingRepository(dbContext, outbox);
+        var booking = CreateBooking(Guid.NewGuid(), Guid.NewGuid());
         await repository.Save(booking);
 
         booking.Confirm(DateTime.UtcNow);
 
-        // Act
         await repository.Save(booking);
 
-        // Assert
         var updated = await dbContext.Bookings.FindAsync(booking.Id);
         updated!.Status.Should().Be(BookingStatus.Confirmed);
         updated.ProcessedAt.Should().NotBeNull();
@@ -99,36 +71,29 @@ public class BookingRepositoryTests
     [Test]
     public async Task Get_Should_ReturnBooking_When_Exists()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new BookingRepository(dbContext);
-        var @event = CreateEvent(dbContext);
-        var user = CreateUser(dbContext);
-
-        var booking = CreateBooking(@event.Id, user.Id);
+        var outbox = Substitute.For<IOutboxRepository>();
+        var repository = new BookingRepository(dbContext, outbox);
+        var booking = CreateBooking(Guid.NewGuid(), Guid.NewGuid());
         await repository.Save(booking);
 
-        // Act
         var result = await repository.Get(booking.Id);
 
-        // Assert
         result.Should().NotBeNull();
-        result!.EventId.Should().Be(@event.Id);
-        result.UserId.Should().Be(user.Id);
+        result!.EventId.Should().Be(booking.EventId);
+        result.UserId.Should().Be(booking.UserId);
         result.Status.Should().Be(BookingStatus.Pending);
     }
 
     [Test]
     public async Task Get_Should_ReturnNull_When_DoesNotExist()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new BookingRepository(dbContext);
+        var outbox = Substitute.For<IOutboxRepository>();
+        var repository = new BookingRepository(dbContext, outbox);
 
-        // Act
         var result = await repository.Get(Guid.NewGuid());
 
-        // Assert
         result.Should().BeNull();
     }
 }

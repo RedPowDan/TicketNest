@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Events.Models.Events;
 
 namespace TicketNest.UnitTests.Domain.Models.Events;
 

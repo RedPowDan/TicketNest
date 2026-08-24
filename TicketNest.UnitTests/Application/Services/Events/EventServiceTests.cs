@@ -1,12 +1,12 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using TicketNest.Application.Services.Events;
-using TicketNest.Domain.Constants;
-using TicketNest.Domain.Filters;
-using TicketNest.Domain.Models;
-using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.Pagination;
-using TicketNest.Domain.Repositories;
+using TicketNest.Application.Events.Services.Events;
+using TicketNest.Domain.Events.Constants;
+using TicketNest.Domain.Events.Filters;
+using TicketNest.Domain.Events.Models;
+using TicketNest.Domain.Events.Models.Events;
+using TicketNest.Domain.Events.Pagination;
+using TicketNest.Domain.Events.Repositories;
 
 namespace TicketNest.UnitTests.Application.Services.Events;
 

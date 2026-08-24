@@ -1,31 +1,43 @@
 using FluentAssertions;
-using TicketNest.DataAccess.Events.Implementations;
-using TicketNest.Domain.Models.Users;
+using Microsoft.EntityFrameworkCore;
+using TicketNest.DataAccess.Auth.DbContext;
+using TicketNest.DataAccess.Auth.Implementations;
+using TicketNest.Domain.Auth.Models.Users;
 using TicketNest.IntegrationTests.Infrastructure;
 
 namespace TicketNest.IntegrationTests.DataAccess.Events.Implementations;
 
 [Collection("Database")]
-public class UserRepositoryTests : EventsPgDatabaseTestBase
+public class UserRepositoryTests
 {
-    public UserRepositoryTests(PostgreSqlContainerFixture fixture) : base(fixture)
+    private readonly PostgreSqlContainerFixture _fixture;
+
+    public UserRepositoryTests(PostgreSqlContainerFixture fixture)
     {
+        _fixture = fixture;
     }
 
-    #region Save
+    private AuthDbContext CreateDbContext() =>
+        new AuthDbContext(
+            new DbContextOptionsBuilder<AuthDbContext>()
+                .UseNpgsql(_fixture.ConnectionString)
+                .Options);
+
+    private static User CreateTestUser(string? login = null)
+    {
+        login ??= $"user-{Guid.CreateVersion7()}";
+        return User.LoadFromStorage(Guid.CreateVersion7(), login, "AQAAAAEAACcQAAAAE...", UserRole.User);
+    }
 
     [Fact]
     public async Task Save_should_create_new_user_when_user_does_not_exist()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
         var user = CreateTestUser();
 
-        // Act
         await repository.Save(user);
 
-        // Assert
         await using var assertContext = CreateDbContext();
         var saved = await assertContext.Users.FindAsync(user.Id);
         saved.Should().NotBeNull();
@@ -37,22 +49,14 @@ public class UserRepositoryTests : EventsPgDatabaseTestBase
     [Fact]
     public async Task Save_should_update_existing_user_when_user_exists()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
         var user = CreateTestUser();
         await repository.Save(user);
 
-        var changedUser = User.LoadFromStorage(
-            id: user.Id,
-            login: user.Login,
-            passwordHash: "new-password-hash",
-            role: UserRole.Admin);
-
-        // Act
+        var changedUser = User.LoadFromStorage(user.Id, user.Login, "new-password-hash", UserRole.Admin);
         await repository.Save(changedUser);
 
-        // Assert
         await using var assertContext = CreateDbContext();
         var updated = await assertContext.Users.FindAsync(user.Id);
         updated.Should().NotBeNull();
@@ -63,38 +67,28 @@ public class UserRepositoryTests : EventsPgDatabaseTestBase
     [Fact]
     public async Task Save_should_throw_when_login_is_not_unique()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
         var firstUser = CreateTestUser(login: "duplicate-login");
         await repository.Save(firstUser);
 
-        var secondUser = User.Create("duplicate-login", passwordHash: "hash-2", role: UserRole.User).Value;
+        var secondUser = User.LoadFromStorage(Guid.CreateVersion7(), "duplicate-login", "hash-2", UserRole.User);
 
-        // Act
         var act = async () => await repository.Save(secondUser);
 
-        // Assert
         await act.Should().ThrowAsync<Exception>();
     }
-
-    #endregion
-
-    #region Get
 
     [Fact]
     public async Task Get_should_return_user_when_user_exists()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
         var user = CreateTestUser(login: "findable-user");
         await repository.Save(user);
 
-        // Act
         var result = await repository.Get(user.Id);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(user.Id);
         result.Login.Should().Be("findable-user");
@@ -105,34 +99,24 @@ public class UserRepositoryTests : EventsPgDatabaseTestBase
     [Fact]
     public async Task Get_should_return_null_when_user_does_not_exist()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
 
-        // Act
         var result = await repository.Get(Guid.NewGuid());
 
-        // Assert
         result.Should().BeNull();
     }
-
-    #endregion
-
-    #region GetByLogin
 
     [Fact]
     public async Task GetByLogin_should_return_user_when_user_exists()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
         var user = CreateTestUser(login: "present-user");
         await repository.Save(user);
 
-        // Act
         var result = await repository.GetByLogin("present-user");
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(user.Id);
         result.Login.Should().Be("present-user");
@@ -141,22 +125,11 @@ public class UserRepositoryTests : EventsPgDatabaseTestBase
     [Fact]
     public async Task GetByLogin_should_return_null_when_user_does_not_exist()
     {
-        // Arrange
         await using var dbContext = CreateDbContext();
         var repository = new UserRepository(dbContext);
 
-        // Act
         var result = await repository.GetByLogin("missing-user");
 
-        // Assert
         result.Should().BeNull();
-    }
-
-    #endregion
-
-    private static User CreateTestUser(string login = "user01")
-    {
-        var result = User.Create(login, passwordHash: "AQAAAAEAACcQAAAAE...", role: UserRole.User);
-        return result.Value;
     }
 }

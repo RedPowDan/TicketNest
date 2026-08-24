@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using FluentAssertions;
-using TicketNest.Domain.Services.Auth;
 using TicketNest.Infrastructure.Auth;
 
 namespace TicketNest.UnitTests.Infrastructure.Auth;

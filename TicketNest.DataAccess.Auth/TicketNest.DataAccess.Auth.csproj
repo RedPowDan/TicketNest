@@ -17,4 +17,9 @@
       <ProjectReference Include="..\TicketNest.Application.Auth\TicketNest.Application.Auth.csproj" />
     </ItemGroup>
     
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
+
 </Project>

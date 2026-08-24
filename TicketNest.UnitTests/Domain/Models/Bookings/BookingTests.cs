@@ -1,7 +1,7 @@
 using FluentAssertions;
-using TicketNest.Domain.Constants;
-using TicketNest.Domain.Models.Bookings;
-using TicketNest.Domain.Models.Users;
+using TicketNest.Domain.Bookings.Constants;
+using TicketNest.Domain.Bookings.Models.Bookings;
+using TicketNest.Domain.Bookings.Models.Users;
 
 namespace TicketNest.UnitTests.Domain.Models.Bookings;
 
@@ -65,7 +65,7 @@ public class BookingTests
         var owner = CreateUser(ownerId, UserRole.User);
 
         // Act
-        var result = booking.CanCancel(owner);
+        var result = booking.CanCancel(owner.Id, owner.Role);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -81,7 +81,7 @@ public class BookingTests
         var admin = CreateUser(adminId, UserRole.Admin);
 
         // Act
-        var result = booking.CanCancel(admin);
+        var result = booking.CanCancel(admin.Id, admin.Role);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -97,7 +97,7 @@ public class BookingTests
         var other = CreateUser(otherId, UserRole.User);
 
         // Act
-        var result = booking.CanCancel(other);
+        var result = booking.CanCancel(other.Id, other.Role);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -113,7 +113,7 @@ public class BookingTests
         var owner = CreateUser(ownerId, UserRole.User);
 
         // Act
-        var result = booking.CanCancel(owner);
+        var result = booking.CanCancel(owner.Id, owner.Role);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -129,7 +129,7 @@ public class BookingTests
         var owner = CreateUser(ownerId, UserRole.User);
 
         // Act
-        var result = booking.CanCancel(owner);
+        var result = booking.CanCancel(owner.Id, owner.Role);
 
         // Assert
         result.IsFailure.Should().BeTrue();

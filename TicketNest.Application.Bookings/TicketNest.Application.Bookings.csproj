@@ -18,4 +18,9 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
+
 </Project>

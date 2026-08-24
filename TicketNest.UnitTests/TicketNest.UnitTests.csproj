@@ -27,4 +27,22 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\TicketNest.Domain.Auth\TicketNest.Domain.Auth.csproj" />
+        <ProjectReference Include="..\TicketNest.Domain.Events\TicketNest.Domain.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Auth\TicketNest.DataAccess.Auth.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Bookings\TicketNest.DataAccess.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Application.Auth\TicketNest.Application.Auth.csproj" />
+        <ProjectReference Include="..\TicketNest.Application.Events\TicketNest.Application.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Application.Bookings\TicketNest.Application.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
+        <ProjectReference Include="..\TicketNest.Infrastructure\TicketNest.Infrastructure.csproj" />
+        <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+        <ProjectReference Include="..\TicketNest.Kafka\TicketNest.Kafka.csproj" />
+        <ProjectReference Include="..\TicketNest.Queues.Bookings\TicketNest.Queues.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Queues.Events\TicketNest.Queues.Events.csproj" />
+    </ItemGroup>
+
 </Project>

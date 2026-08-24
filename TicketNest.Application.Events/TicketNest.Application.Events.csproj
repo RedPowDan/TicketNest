@@ -17,4 +17,9 @@
         <ProjectReference Include="..\TicketNest.Domain.Events\TicketNest.Domain.Events.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="TicketNest.UnitTests" />
+      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    </ItemGroup>
+
 </Project>

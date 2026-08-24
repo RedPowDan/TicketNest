@@ -1,13 +1,12 @@
 using FluentAssertions;
 using NSubstitute;
-using TicketNest.Application.Services.Users;
-using TicketNest.Domain.Constants;
-using TicketNest.Domain.Models;
-using TicketNest.Domain.Models.Users;
-using TicketNest.Domain.Repositories;
-using TicketNest.Domain.Services.Auth;
-using TicketNest.Domain.Services.Users;
-using TicketNest.Shared;
+using TicketNest.Application.Auth.Services.Users;
+using TicketNest.Domain.Auth.Constants;
+using TicketNest.Domain.Auth.Models;
+using TicketNest.Domain.Auth.Models.Users;
+using TicketNest.Domain.Auth.Repositories;
+using TicketNest.Domain.Auth.Services.Auth;
+using TicketNest.Domain.Auth.Services.Users;
 using TicketNest.Shared.Objects;
 
 namespace TicketNest.UnitTests.Application.Services.Users;
