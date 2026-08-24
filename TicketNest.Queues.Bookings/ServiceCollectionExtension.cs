@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TicketNest.Application.Bookings.Services;
 using TicketNest.Domain.Bookings.Services;
 using TicketNest.Queues.Bookings.Settings;
 
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddScoped<IBookingProducer, BookingProducer>()
+                .AddScoped<IBookingsConsumer, BookingsConsumer>()
                 .AddKafkaSettings(configuration)
             ;
     }

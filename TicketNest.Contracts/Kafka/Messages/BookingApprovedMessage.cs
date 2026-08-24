@@ -1,12 +1,12 @@
 ﻿namespace TicketNest.Contracts.Kafka.Messages;
 
-public class BookingConfirmedMessage
+public class BookingApprovedMessage
 {
     public Guid BookingId { get; }
 
     public Guid EventId { get; }
 
-    public BookingConfirmedMessage(Guid bookingId, Guid eventId)
+    public BookingApprovedMessage(Guid bookingId, Guid eventId)
     {
         BookingId = bookingId;
         EventId = eventId;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TicketNest.Application.Events.Services;
 using TicketNest.Domain.Events.Services;
 using TicketNest.Queues.Events.Settings;
 
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddScoped<IEventsProducer, EventsProducer>()
+                .AddScoped<IEventsConsumer, EventsConsumer>()
                 .AddKafkaSettings(configuration)
             ;
     }

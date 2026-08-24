@@ -6,7 +6,7 @@ using TicketNest.Domain.Events.Services.Events;
 
 namespace TicketNest.Application.Events.BackgroundServices;
 
-public class BookingCreatedBackgroundService : BackgroundService
+internal sealed class BookingCreatedBackgroundService : BackgroundService
 {
     private readonly IEventReserveService _eventReserveService;
     private readonly IEventsProducer _eventsProducer;
@@ -40,7 +40,7 @@ public class BookingCreatedBackgroundService : BackgroundService
             return;
         }
 
-        await _eventsProducer.BookingConfirmed(
+        await _eventsProducer.BookingApproved(
             bookingId: message.BookingId,
             eventId: message.EventId,
             CancellationToken.None);

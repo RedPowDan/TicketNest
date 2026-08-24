@@ -147,7 +147,7 @@ public class Event
         return UnitResult<string>.FromSuccess();
     }
 
-    public UnitResult<Error> TryReserveSeats(DateTime now, int count = 1)
+    internal UnitResult<Error> TryReserveSeats(DateTime now, int count = 1)
     {
         Ensure.NonNegative(count, nameof(count));
 

@@ -18,11 +18,11 @@ public sealed class BookingConfirmationService(IBookingRepository bookingReposit
             return new Error(ErrorCode.NotFound, $"Бронь с Id={bookingId} не найдена");
         }
 
-        await ConfirmInTicketSystem(booking, ct);
-
         await Semaphore.WaitAsync(ct);
         try
         {
+            await ConfirmInTicketSystem(booking, ct);
+
             booking.Confirm(processedAt: DateTime.UtcNow);
             await bookingRepository.Save(booking, ct);
         }

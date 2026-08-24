@@ -9,25 +9,30 @@ namespace TicketNest.Queues.Events;
 
 internal sealed class EventsConsumer : IEventsConsumer
 {
-    private readonly IKafkaConsumerGatewayFactory<BookingCreatedMessage> _kafkaConsumerGateway;
+    private readonly IKafkaConsumerGatewayFactory _kafkaConsumerGatewayFactory;
     private readonly EventsKafkaSettings _settings;
 
-    public EventsConsumer(IKafkaConsumerGatewayFactory<BookingCreatedMessage> kafkaConsumerGateway, EventsKafkaSettings eventsKafkaSettings)
+    public EventsConsumer(IKafkaConsumerGatewayFactory kafkaConsumerGatewayFactory, EventsKafkaSettings eventsKafkaSettings)
     {
-        _kafkaConsumerGateway = kafkaConsumerGateway;
+        _kafkaConsumerGatewayFactory = kafkaConsumerGatewayFactory;
         _settings = eventsKafkaSettings;
     }
 
     public Task HandleBookingCreatedMessage(Func<BookingCreatedMessage, CancellationToken, Task> func, CancellationToken ct)
     {
-        var gateway = CreateGateway((message, token) => func(message.Content, token));
+        var gateway = CreateGateway<BookingCreatedMessage>((message, token) => func(message.Content, token));
         return gateway.Run(ct);
     }
 
-    private IKafkaConsumerGateway<BookingCreatedMessage> CreateGateway(
-        Func<IncomingMessage<BookingCreatedMessage>, CancellationToken, Task> messageHandler)
+    public Task HandleBookingCancelledMessage(Func<BookingCancelledMessage, CancellationToken, Task> func, CancellationToken ct)
     {
-        return _kafkaConsumerGateway.CreateGateway(
+        var gateway = CreateGateway<BookingCancelledMessage>((message, token) => func(message.Content, token));
+        return gateway.Run(ct);
+    }
+
+    private IKafkaConsumerGateway<T> CreateGateway<T>(Func<IncomingMessage<T>, CancellationToken, Task> messageHandler) where T: class
+    {
+        return _kafkaConsumerGatewayFactory.CreateGateway(
             config: new ConsumerConfig
             {
                 BootstrapServers = _settings.BaseUrl,

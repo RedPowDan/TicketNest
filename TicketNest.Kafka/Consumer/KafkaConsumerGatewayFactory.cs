@@ -3,20 +3,20 @@ using Microsoft.Extensions.Logging;
 
 namespace TicketNest.Kafka.Consumer;
 
-internal sealed class KafkaConsumerGatewayFactory<T> : IKafkaConsumerGatewayFactory<T> where T : class
+internal sealed class KafkaConsumerGatewayFactory : IKafkaConsumerGatewayFactory
 {
-    private readonly ILogger<KafkaConsumerGateway<T>> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
-    public KafkaConsumerGatewayFactory(ILogger<KafkaConsumerGateway<T>> logger)
+    public KafkaConsumerGatewayFactory(IServiceProvider serviceProvider)
     {
-        _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
-    public IKafkaConsumerGateway<T> CreateGateway(
-        ConsumerConfig config,
-        string topic,
-        Func<IncomingMessage<T>, CancellationToken, Task> messageHandler)
+    public IKafkaConsumerGateway<T> CreateGateway<T>(
+        ConsumerConfig config, string topic,
+        Func<IncomingMessage<T>, CancellationToken, Task> messageHandler) where T : class
     {
-        return new KafkaConsumerGateway<T>(config, topic, _logger, messageHandler);
+        var logger = (ILogger<KafkaConsumerGateway<T>>) _serviceProvider.GetService(typeof(ILogger<KafkaConsumerGateway<T>>))!;
+        return new KafkaConsumerGateway<T>(config, topic, logger, messageHandler);
     }
 }

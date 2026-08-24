@@ -31,15 +31,15 @@ internal sealed class EventsProducer : IEventsProducer
             ct);
     }
 
-    public async Task BookingConfirmed(Guid bookingId, Guid eventId, CancellationToken ct)
+    public async Task BookingApproved(Guid bookingId, Guid eventId, CancellationToken ct)
     {
-        var message = new BookingConfirmedMessage(bookingId, eventId);
+        var message = new BookingApprovedMessage(bookingId, eventId);
         var outgoingMessage = CreateMessage(bookingId, message);
 
         var gateway = CreateGateway();
         await gateway.Produce(
             outgoingMessage: outgoingMessage,
-            topic: KafkaTopics.BookingTopic,
+            topic: KafkaTopics.EventTopic,
             ct);
     }
 

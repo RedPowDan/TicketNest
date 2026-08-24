@@ -2,10 +2,10 @@
 
 namespace TicketNest.Kafka.Consumer;
 
-public interface IKafkaConsumerGatewayFactory<T> where T : class
+public interface IKafkaConsumerGatewayFactory
 {
-    public IKafkaConsumerGateway<T> CreateGateway(
+    public IKafkaConsumerGateway<T> CreateGateway<T>(
         ConsumerConfig config,
         string topic,
-        Func<IncomingMessage<T>, CancellationToken, Task> messageHandler);
+        Func<IncomingMessage<T>, CancellationToken, Task> messageHandler) where T : class;
 }

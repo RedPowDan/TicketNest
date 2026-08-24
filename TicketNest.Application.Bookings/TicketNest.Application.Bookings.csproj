@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
       <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
       <ProjectReference Include="..\TicketNest.Kafka\TicketNest.Kafka.csproj" />
     </ItemGroup>
