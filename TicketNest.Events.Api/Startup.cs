@@ -1,4 +1,5 @@
 ﻿using TicketNest.Application.Events;
+using TicketNest.Contracts.Kafka;
 using TicketNest.DataAccess.Events;
 using TicketNest.Events.Api.DI;
 using TicketNest.Events.Api.Infrastructure;
@@ -61,6 +62,13 @@ public class Startup
         app.UseAuthorization();
 
         app.Services.RunMigrations();
+
+        KafkaTopicInitializer.EnsureTopicsCreated(
+            Configuration["Kafka:BaseUrl"]!,
+            Configuration["Kafka:Login"],
+            Configuration["Kafka:Password"],
+            KafkaTopics.BookingTopic,
+            KafkaTopics.EventTopic);
 
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }

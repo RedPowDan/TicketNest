@@ -13,6 +13,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
+      <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
     </ItemGroup>
 
 </Project>
