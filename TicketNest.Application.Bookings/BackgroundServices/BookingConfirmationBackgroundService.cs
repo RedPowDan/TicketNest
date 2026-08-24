@@ -3,10 +3,9 @@ using TicketNest.Application.Bookings.Services;
 using TicketNest.Contracts.Kafka.Messages;
 using TicketNest.Domain.Bookings.Services.Bookings;
 
-
 namespace TicketNest.Application.Bookings.BackgroundServices;
 
-public class BookingConfirmationBackgroundService(IBookingsConsumer consumer, IBookingConfirmationService bookingConfirmationService) : BackgroundService
+internal sealed class BookingConfirmationBackgroundService(IBookingsConsumer consumer, IBookingConfirmationService bookingConfirmationService) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken ct)
     {

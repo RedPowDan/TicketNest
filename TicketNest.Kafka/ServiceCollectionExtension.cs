@@ -6,10 +6,10 @@ namespace TicketNest.Kafka;
 
 public static class ServiceCollectionExtension
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddKafkaInfrastructure(this IServiceCollection services)
     {
         return services
-            .AddScoped(typeof(IKafkaConsumerGatewayFactory<>), typeof(KafkaConsumerGatewayFactory<>))
+            .AddScoped<IKafkaConsumerGatewayFactory, KafkaConsumerGatewayFactory>()
             .AddScoped<IKafkaProducerGatewayFactory, KafkaProducerGatewayFactory>()
             ;
     }

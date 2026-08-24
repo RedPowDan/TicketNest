@@ -3,6 +3,7 @@ using TicketNest.DataAccess.Events;
 using TicketNest.Events.Api.DI;
 using TicketNest.Events.Api.Infrastructure;
 using TicketNest.Events.Api.Middlewares;
+using TicketNest.Kafka;
 using TicketNest.Queues.Events;
 
 namespace TicketNest.Events.Api;
@@ -30,6 +31,7 @@ public class Startup
         services.AddHttpContextAccessor();
         services.AddQueues(Configuration);
         services.AddJwt(Configuration);
+        services.AddKafkaInfrastructure();
 
         services.AddAuthorization();
 

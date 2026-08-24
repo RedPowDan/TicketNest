@@ -33,7 +33,6 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddHostedService<BookingConfirmationBackgroundService>()
-                .AddHostedService<BookingCancellationBackgroundService>()
             ;
     }
 

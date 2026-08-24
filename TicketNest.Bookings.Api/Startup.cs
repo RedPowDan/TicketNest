@@ -4,6 +4,7 @@ using TicketNest.Bookings.Api.Infrastructure;
 using TicketNest.Bookings.Api.Middlewares;
 using TicketNest.Bookings.Api.Services;
 using TicketNest.DataAccess.Bookings;
+using TicketNest.Kafka;
 using TicketNest.Queues.Bookings;
 
 namespace TicketNest.Bookings.Api;
@@ -35,6 +36,7 @@ public class Startup
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddJwt(Configuration);
+        services.AddKafkaInfrastructure();
 
         services.AddAuthorization();
 
