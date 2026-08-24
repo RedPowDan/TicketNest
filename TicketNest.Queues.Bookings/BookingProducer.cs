@@ -2,12 +2,11 @@
 using Confluent.Kafka;
 using TicketNest.Contracts.Kafka;
 using TicketNest.Contracts.Kafka.Messages;
-using TicketNest.Domain.Bookings.Models.Bookings;
 using TicketNest.Domain.Bookings.Services;
 using TicketNest.Kafka.Producer;
-using TicketNest.Queues.Settings;
+using TicketNest.Queues.Bookings.Settings;
 
-namespace TicketNest.Queues;
+namespace TicketNest.Queues.Bookings;
 
 internal sealed class BookingProducer : IBookingProducer
 {
@@ -20,14 +19,10 @@ internal sealed class BookingProducer : IBookingProducer
         _settings = settings;
     }
 
-    public async Task BookingCreated(Booking booking, CancellationToken ct)
+    public async Task BookingCreated(Guid bookingId, Guid eventId, CancellationToken ct)
     {
-        var message = new BookingCreatedMessage(booking.Id, booking.EventId);
-        var outgoingMessage = new Message<string, string>
-        {
-            Key = booking.Id.ToString(),
-            Value = JsonSerializer.Serialize(message)
-        };
+        var message = new BookingCreatedMessage(bookingId, eventId);
+        var outgoingMessage = CreateMessage(bookingId, message);
 
         var gateway = CreateGateway();
         await gateway.Produce(
@@ -36,6 +31,27 @@ internal sealed class BookingProducer : IBookingProducer
             ct);
     }
 
+    public async Task BookingCanceled(Guid bookingId, Guid eventId, CancellationToken ct)
+    {        
+        var message = new BookingCancelledMessage(bookingId, eventId);
+        var outgoingMessage = CreateMessage(bookingId, message);
+
+        var gateway = CreateGateway();
+        await gateway.Produce(
+            outgoingMessage: outgoingMessage,
+            topic: KafkaTopics.BookingTopic,
+            ct);
+    }
+
+    private static Message<string, string> CreateMessage<T>(Guid id, T message)
+    {
+        return new Message<string, string>
+        {
+            Key = id.ToString(),
+            Value = JsonSerializer.Serialize(message)
+        };
+    }
+    
     private IKafkaProducerGateway CreateGateway()
     {
         return _kafkaProducerGatewayFactory.Create(new ProducerConfig

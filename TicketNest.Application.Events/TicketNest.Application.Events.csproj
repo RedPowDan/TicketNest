@@ -13,6 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
         <ProjectReference Include="..\TicketNest.Domain.Events\TicketNest.Domain.Events.csproj"/>
     </ItemGroup>
 

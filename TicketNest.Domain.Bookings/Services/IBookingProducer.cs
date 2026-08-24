@@ -1,8 +1,7 @@
-﻿using TicketNest.Domain.Bookings.Models.Bookings;
-
-namespace TicketNest.Domain.Bookings.Services;
+﻿namespace TicketNest.Domain.Bookings.Services;
 
 public interface IBookingProducer
 {
-    public Task BookingCreated(Booking booking, CancellationToken ct);
+    public Task BookingCreated(Guid bookingId, Guid eventId, CancellationToken ct);
+    public Task BookingCanceled(Guid bookingId, Guid eventId, CancellationToken ct);
 }

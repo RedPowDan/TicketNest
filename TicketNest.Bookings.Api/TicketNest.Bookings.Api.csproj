@@ -19,7 +19,7 @@
     <ItemGroup>
       <ProjectReference Include="..\TicketNest.Application.Bookings\TicketNest.Application.Bookings.csproj" />
       <ProjectReference Include="..\TicketNest.DataAccess.Bookings\TicketNest.DataAccess.Bookings.csproj" />
-      <ProjectReference Include="..\TicketNest.Queues\TicketNest.Queues.csproj" />
+      <ProjectReference Include="..\TicketNest.Queues.Bookings\TicketNest.Queues.Bookings.csproj" />
     </ItemGroup>
 
 </Project>

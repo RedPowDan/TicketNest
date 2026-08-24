@@ -1,6 +1,6 @@
 ﻿using TicketNest.Shared.Guard;
 
-namespace TicketNest.Queues.Settings;
+namespace TicketNest.Queues.Bookings.Settings;
 
 public class BookingKafkaSettings
 {

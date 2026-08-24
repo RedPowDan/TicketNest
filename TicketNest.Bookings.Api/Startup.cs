@@ -4,7 +4,7 @@ using TicketNest.Bookings.Api.Infrastructure;
 using TicketNest.Bookings.Api.Middlewares;
 using TicketNest.Bookings.Api.Services;
 using TicketNest.DataAccess.Bookings;
-using TicketNest.Queues;
+using TicketNest.Queues.Bookings;
 
 namespace TicketNest.Bookings.Api;
 
@@ -26,7 +26,7 @@ public class Startup
         services.AddControllers();
         services.AddSwagger();
         services.AddApplicationServices();
-        services.AddQueues();
+        services.AddQueues(Configuration);
         services.AddBookingAccess(Configuration.GetConnectionString("EventsDbConnection")!);
         //services.AddQueueDataAccess();
         //services.AddInfrastructure(Configuration);

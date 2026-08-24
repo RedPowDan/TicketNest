@@ -72,8 +72,6 @@ public class Booking
 
         Status = BookingStatus.Rejected;
         ProcessedAt = processedAt;
-
-        AddDomainEvent(new BookingRejected(bookingId: Id, eventId: EventId));
     }
 
     public void Cancel(DateTime processedAt)

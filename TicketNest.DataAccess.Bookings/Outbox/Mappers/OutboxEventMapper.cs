@@ -23,11 +23,6 @@ internal static class OutboxEventMapper
                 BookingId = e.BookingId,
                 EventId = e.EventId,
             },
-            BookingRejected e => new BookingRejectedPersistenceEvent
-            {
-                BookingId = e.BookingId,
-                EventId = e.EventId,
-            },
             _ => throw new InvalidOperationException(
                 $"Неизвестный тип доменного события: {domainEvent.GetType().FullName}"),
         };
@@ -39,7 +34,6 @@ internal static class OutboxEventMapper
         {
             BookingCreatedPersistenceEvent e => new BookingCreated(e.BookingId, e.EventId),
             BookingCanceledPersistenceEvent e => new BookingCanceled(e.BookingId, e.EventId),
-            BookingRejectedPersistenceEvent e => new BookingRejected(e.BookingId, e.EventId),
             _ => throw new InvalidOperationException(
                 $"Неизвестный тип персистанс-события: {persistenceEvent.GetType().FullName}"),
         };

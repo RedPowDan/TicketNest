@@ -1,21 +1,19 @@
 using Microsoft.Extensions.Logging;
 using TicketNest.Domain.Bookings.Models.Bookings.DomainEvents;
+using TicketNest.Domain.Bookings.Services;
 
 namespace TicketNest.Domain.Bookings.Outbox.Handlers;
 
-/// <summary>
-/// Обработчик создания брони (слой Application). Здесь, например, публикация события в шину/Kafka.
-/// </summary>
-internal sealed class BookingCreatedEventHandler(ILogger<BookingCreatedEventHandler> logger)
+internal sealed class BookingCreatedEventHandler(IBookingProducer bookingProducer, ILogger<BookingCreatedEventHandler> logger)
     : IEventHandler<BookingCreated>
 {
-    public Task HandleAsync(BookingCreated e, CancellationToken ct = default)
+    public async Task HandleAsync(BookingCreated e, CancellationToken ct = default)
     {
         logger.LogInformation(
             "Бронь создана: {BookingId}, мероприятие {EventId}",
             e.BookingId,
             e.EventId);
 
-        return Task.CompletedTask;
+        await bookingProducer.BookingCreated(e.BookingId, e.EventId, ct);
     }
 }
