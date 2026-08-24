@@ -18,10 +18,10 @@ internal sealed class BookingsConsumer : IBookingsConsumer
         _settings = settings;
     }
 
-    public Task HandleBookingApprovedMessage(Func<BookingApprovedMessage, CancellationToken, Task> func, CancellationToken ct)
+    public async Task HandleBookingApprovedMessage(Func<BookingApprovedMessage, CancellationToken, Task> func, CancellationToken ct)
     {
-        var gateway = CreateGateway((message, token) => func(message.Content, token));
-        return gateway.Run(ct);
+        using var gateway = CreateGateway((message, token) => func(message.Content, token));
+        await gateway.Run(ct);
     }
 
     private IKafkaConsumerGateway<BookingApprovedMessage> CreateGateway(

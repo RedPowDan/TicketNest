@@ -18,16 +18,16 @@ internal sealed class EventsConsumer : IEventsConsumer
         _settings = eventsKafkaSettings;
     }
 
-    public Task HandleBookingCreatedMessage(Func<BookingCreatedMessage, CancellationToken, Task> func, CancellationToken ct)
+    public async Task HandleBookingCreatedMessage(Func<BookingCreatedMessage, CancellationToken, Task> func, CancellationToken ct)
     {
-        var gateway = CreateGateway<BookingCreatedMessage>((message, token) => func(message.Content, token));
-        return gateway.Run(ct);
+        using var gateway = CreateGateway<BookingCreatedMessage>((message, token) => func(message.Content, token));
+        await gateway.Run(ct);
     }
 
-    public Task HandleBookingCancelledMessage(Func<BookingCancelledMessage, CancellationToken, Task> func, CancellationToken ct)
+    public async Task HandleBookingCancelledMessage(Func<BookingCancelledMessage, CancellationToken, Task> func, CancellationToken ct)
     {
-        var gateway = CreateGateway<BookingCancelledMessage>((message, token) => func(message.Content, token));
-        return gateway.Run(ct);
+        using var gateway = CreateGateway<BookingCancelledMessage>((message, token) => func(message.Content, token));
+        await gateway.Run(ct);
     }
 
     private IKafkaConsumerGateway<T> CreateGateway<T>(Func<IncomingMessage<T>, CancellationToken, Task> messageHandler) where T: class
