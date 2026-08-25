@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="xunit.runner.visualstudio">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="FluentAssertions" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />
+        <PackageReference Include="Testcontainers.PostgreSql" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+        <Using Include="FluentAssertions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TicketNest.Domain.Auth\TicketNest.Domain.Auth.csproj" />
+        <ProjectReference Include="..\TicketNest.Domain.Events\TicketNest.Domain.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Auth\TicketNest.DataAccess.Auth.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Bookings\TicketNest.DataAccess.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
+        <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -18,9 +18,12 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
-    <ItemGroup>
-      <InternalsVisibleTo Include="TicketNest.UnitTests" />
-      <InternalsVisibleTo Include="TicketNest.IntegrationTests" />
+    <ItemGroup>      <InternalsVisibleTo Include="TicketNest.Auth.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Events.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Bookings.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Shared.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Events.IntegrationTests" />
+      <InternalsVisibleTo Include="TicketNest.Kafka.IntegrationTests" />
     </ItemGroup>
 
 </Project>
