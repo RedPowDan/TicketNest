@@ -25,9 +25,9 @@ public static class ServiceCollectionExtension
         var login = kafkaSection["Login"];
         var password = kafkaSection["Password"];
 
-        if (string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(baseUrl))
         {
-            throw new InvalidOperationException("Kafka settings are not configured properly");
+            throw new InvalidOperationException("Kafka BaseUrl is not configured");
         }
 
         var kafkaSettings = new EventsKafkaSettings(baseUrl, login, password);

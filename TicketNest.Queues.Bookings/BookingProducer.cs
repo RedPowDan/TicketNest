@@ -54,11 +54,24 @@ internal sealed class BookingProducer : IBookingProducer
     
     private IKafkaProducerGateway CreateGateway()
     {
-        return _kafkaProducerGatewayFactory.Create(new ProducerConfig
+        var config = new ProducerConfig
         {
-            BootstrapServers = _settings.BaseUrl,
-            SaslUsername = _settings.Login,
-            SaslPassword = _settings.Password
-        });
+            BootstrapServers = _settings.BaseUrl
+        };
+
+        ApplySasl(config, _settings.Login, _settings.Password);
+
+        return _kafkaProducerGatewayFactory.Create(config);
+    }
+
+    private static void ApplySasl(ClientConfig config, string? login, string? password)
+    {
+        if (!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password))
+        {
+            config.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+            config.SaslMechanism = SaslMechanism.Plain;
+            config.SaslUsername = login;
+            config.SaslPassword = password;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TicketNest.Application.Events.Services;
 using TicketNest.Contracts.Kafka.Messages;
@@ -8,28 +9,30 @@ namespace TicketNest.Application.Events.BackgroundServices;
 
 internal sealed class BookingCancelledBackgroundService : BackgroundService
 {
-    private readonly IEventsConsumer _eventsConsumer;
-    private readonly IEventReleaseSeatsService _eventReleaseSeatsService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<BookingCancelledBackgroundService> _logger;
 
     public BookingCancelledBackgroundService(
-        IEventsConsumer eventsConsumer,
-        IEventReleaseSeatsService eventReleaseSeatsService,
+        IServiceScopeFactory scopeFactory,
         ILogger<BookingCancelledBackgroundService> logger)
     {
-        _eventsConsumer = eventsConsumer;
-        _eventReleaseSeatsService = eventReleaseSeatsService;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
-    protected override Task ExecuteAsync(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        return _eventsConsumer.HandleBookingCancelledMessage(HandleMessage, ct);
+        using var scope = _scopeFactory.CreateScope();
+        var consumer = scope.ServiceProvider.GetRequiredService<IEventsConsumer>();
+        await consumer.HandleBookingCancelledMessage(HandleMessage, ct);
     }
 
     private async Task HandleMessage(BookingCancelledMessage message, CancellationToken ct)
     {
-        var result = await _eventReleaseSeatsService.ReleaseSeats(message.EventId, ct: ct);
+        using var scope = _scopeFactory.CreateScope();
+        var eventReleaseSeatsService = scope.ServiceProvider.GetRequiredService<IEventReleaseSeatsService>();
+
+        var result = await eventReleaseSeatsService.ReleaseSeats(message.EventId, ct: ct);
         if (result.IsFailure)
         {
             _logger.LogError("Произошла ошибка при обработке сообщения об отмене бронирования.: {@Message}", message);

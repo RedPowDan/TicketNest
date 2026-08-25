@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using TicketNest.Application.Bookings.BackgroundServices;
 using TicketNest.Application.Bookings.Services;
@@ -31,7 +32,13 @@ public class BookingConfirmationBackgroundServiceTests
                 return Task.CompletedTask;
             });
 
-        _service = new BookingConfirmationBackgroundService(_consumer, _confirmationService);
+        var services = new ServiceCollection();
+        services.AddSingleton(_consumer);
+        services.AddSingleton(_confirmationService);
+        var provider = services.BuildServiceProvider();
+        var scopeFactory = provider.GetRequiredService<IServiceScopeFactory>();
+
+        _service = new BookingConfirmationBackgroundService(scopeFactory);
     }
 
     [TearDown]

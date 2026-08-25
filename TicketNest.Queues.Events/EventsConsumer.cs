@@ -32,14 +32,28 @@ internal sealed class EventsConsumer : IEventsConsumer
 
     private IKafkaConsumerGateway<T> CreateGateway<T>(Func<IncomingMessage<T>, CancellationToken, Task> messageHandler) where T: class
     {
+        var config = new ConsumerConfig
+        {
+            BootstrapServers = _settings.BaseUrl,
+            GroupId = "ticketnest-events-service"
+        };
+
+        ApplySasl(config, _settings.Login, _settings.Password);
+
         return _kafkaConsumerGatewayFactory.CreateGateway(
-            config: new ConsumerConfig
-            {
-                BootstrapServers = _settings.BaseUrl,
-                SaslUsername = _settings.Login,
-                SaslPassword = _settings.Password
-            },
+            config: config,
             topic: KafkaTopics.BookingTopic,
             messageHandler: messageHandler);
+    }
+
+    private static void ApplySasl(ClientConfig config, string? login, string? password)
+    {
+        if (!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password))
+        {
+            config.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+            config.SaslMechanism = SaslMechanism.Plain;
+            config.SaslUsername = login;
+            config.SaslPassword = password;
+        }
     }
 }

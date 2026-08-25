@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TicketNest.Application.Events.Services;
 using TicketNest.Contracts.Kafka.Messages;
 using TicketNest.Domain.Events.Services;
@@ -8,31 +9,30 @@ namespace TicketNest.Application.Events.BackgroundServices;
 
 internal sealed class BookingCreatedBackgroundService : BackgroundService
 {
-    private readonly IEventReserveService _eventReserveService;
-    private readonly IEventsProducer _eventsProducer;
-    private readonly IEventsConsumer _eventsConsumer;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public BookingCreatedBackgroundService(
-        IEventReserveService eventReserveService,
-        IEventsProducer eventsProducer,
-        IEventsConsumer eventsConsumer)
+    public BookingCreatedBackgroundService(IServiceScopeFactory scopeFactory)
     {
-        _eventReserveService = eventReserveService;
-        _eventsProducer = eventsProducer;
-        _eventsConsumer = eventsConsumer;
+        _scopeFactory = scopeFactory;
     }
 
-    protected override Task ExecuteAsync(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        return _eventsConsumer.HandleBookingCreatedMessage(HandleMessage, ct);
+        using var scope = _scopeFactory.CreateScope();
+        var consumer = scope.ServiceProvider.GetRequiredService<IEventsConsumer>();
+        await consumer.HandleBookingCreatedMessage(HandleMessage, ct);
     }
 
     private async Task HandleMessage(BookingCreatedMessage message, CancellationToken ct)
     {
-        var result = await _eventReserveService.Reserve(eventId: message.EventId, reserveDateTime: DateTime.UtcNow, ct);
+        using var scope = _scopeFactory.CreateScope();
+        var eventReserveService = scope.ServiceProvider.GetRequiredService<IEventReserveService>();
+        var eventsProducer = scope.ServiceProvider.GetRequiredService<IEventsProducer>();
+
+        var result = await eventReserveService.Reserve(eventId: message.EventId, reserveDateTime: DateTime.UtcNow, ct);
         if (result.IsFailure)
         {
-            await _eventsProducer.BookingRejected(
+            await eventsProducer.BookingRejected(
                 bookingId: message.BookingId,
                 eventId: message.EventId,
                 reason: result.Error.Message,
@@ -40,7 +40,7 @@ internal sealed class BookingCreatedBackgroundService : BackgroundService
             return;
         }
 
-        await _eventsProducer.BookingApproved(
+        await eventsProducer.BookingApproved(
             bookingId: message.BookingId,
             eventId: message.EventId,
             CancellationToken.None);
