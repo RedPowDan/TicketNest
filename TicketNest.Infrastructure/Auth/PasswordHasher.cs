@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using TicketNest.Domain.Services.Auth;
+using TicketNest.Domain.Auth.Services.Auth;
 
 namespace TicketNest.Infrastructure.Auth;
 

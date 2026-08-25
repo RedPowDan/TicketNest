@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TicketNest.Domain.Services.Auth;
+using TicketNest.Domain.Auth.Services.Auth;
 using TicketNest.Infrastructure.Auth;
 
 namespace TicketNest.Infrastructure;

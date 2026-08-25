@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="NUnit" />
+        <PackageReference Include="NUnit.Analyzers" />
+        <PackageReference Include="NUnit3TestAdapter" />
+        <PackageReference Include="FluentAssertions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework" />
+        <Using Include="FluentAssertions" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Application.Bookings\TicketNest.Application.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.DataAccess.Bookings\TicketNest.DataAccess.Bookings.csproj" />
+        <ProjectReference Include="..\TicketNest.Domain.Events\TicketNest.Domain.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
+        <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+    </ItemGroup>
+
+</Project>

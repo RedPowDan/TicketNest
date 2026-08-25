@@ -14,10 +14,5 @@ internal sealed class EventConfiguration : IEntityTypeConfiguration<PersistenceE
         builder.Property(u => u.Id).ValueGeneratedNever();
 
         builder.Property(e => e.Title).IsRequired();
-
-        builder
-            .HasMany(x => x.Bookings)
-            .WithOne(x => x.Event)
-            .HasForeignKey(x => x.EventId);
     }
 }

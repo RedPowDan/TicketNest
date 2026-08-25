@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using TicketNest.DataAccess.Events.Models;
-using TicketNest.Domain.Filters;
+using TicketNest.Domain.Events.Filters;
 
 namespace TicketNest.DataAccess.Events.Filters;
 

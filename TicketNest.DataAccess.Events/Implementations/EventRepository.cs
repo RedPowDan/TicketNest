@@ -2,11 +2,11 @@
 using TicketNest.DataAccess.Events.DbContext;
 using TicketNest.DataAccess.Events.Filters;
 using TicketNest.DataAccess.Events.Mappers;
-using TicketNest.Domain.Filters;
-using TicketNest.Domain.Models;
-using TicketNest.Domain.Models.Events;
-using TicketNest.Domain.Pagination;
-using TicketNest.Domain.Repositories;
+using TicketNest.Domain.Events.Filters;
+using TicketNest.Domain.Events.Models;
+using TicketNest.Domain.Events.Models.Events;
+using TicketNest.Domain.Events.Pagination;
+using TicketNest.Domain.Events.Repositories;
 using TicketNest.Shared.Expressions;
 
 namespace TicketNest.DataAccess.Events.Implementations;

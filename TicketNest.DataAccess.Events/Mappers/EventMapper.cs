@@ -1,5 +1,5 @@
 ﻿using TicketNest.DataAccess.Events.Models;
-using TicketNest.Domain.Models.Events;
+using TicketNest.Domain.Events.Models.Events;
 
 namespace TicketNest.DataAccess.Events.Mappers;
 

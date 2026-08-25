@@ -1,268 +1,158 @@
 # TicketNest
 
-Бэкенд-сервис для управления событиями и бронированиями (билетная система).
+Распределённая билетная система (бронирование событий), состоящая из **трёх независимых микросервисов**, обменивающихся данными через **Kafka**. Каждый сервис построен по принципам чистой архитектуры и имеет собственную базу данных.
 
-## Технологии
+## Сервисы
 
-- **.NET 9**, **ASP.NET Core**
-- **PostgreSQL** (Entity Framework Core + Npgsql)
-- **Clean Architecture** (Domain → Application → Presentation)
-- **Domain-Driven Design** (Aggregate Roots, Domain Services, Value Objects)
-- **Result pattern** (`Result<TValue, TError>`) для обработки ошибок без исключений
-- **CQRS**-like разделение команд и запросов на уровне сервисов
-- **SemaphoreSlim** для защиты от состояний гонки при бронировании
-- **Background Service** для асинхронного подтверждения броней
-- **FluentAssertions** + **NSubstitute** (тесты)
-- **NUnit** (UnitTests), **xUnit** (IntegrationTests)
-- **Testcontainers.PostgreSql** (интеграционные тесты с реальной БД)
+| Сервис | Проект | Назначение | База данных |
+|--------|--------|------------|-------------|
+| **Users / Auth** | `TicketNest.Auth.Api` | Регистрация, логин, выпуск JWT | `auth` (`AuthDbContext`) |
+| **Events** | `TicketNest.Events.Api` | Управление событиями, учёт свободных мест | `events` (`EventsDbContext`) |
+| **Bookings** | `TicketNest.Bookings.Api` | Создание/отмена броней | `bookings` (`BookingsDbContext`) |
 
-## Функционал
-
-### Events (`/events`)
-
-| Метод | Эндпоинт | Описание | Доступ |
-|-------|----------|----------|--------|
-| GET | `/events` | Список событий (пагинация, фильтрация по названию и датам) | Все |
-| GET | `/events/{id}` | Получить событие по GUID | Все |
-| POST | `/events` | Создать новое событие | **Только Admin** |
-| PUT | `/events/{id}` | Обновить событие | **Только Admin** |
-| DELETE | `/events/{id}` | Удалить событие | **Только Admin** |
-| POST | `/events/{id}/book` | Создать бронирование (202 Accepted / 409 Conflict) | Аутентиф. пользователь |
-
-### Bookings (`/bookings`)
-
-| Метод | Эндпоинт | Описание | Доступ |
-|-------|----------|----------|--------|
-| GET | `/bookings/{id}` | Получить информацию о бронировании | Аутентиф. пользователь |
-| DELETE | `/bookings/{id}` | Отменить бронирование (204 No Content) | Владелец брони или **Admin** |
-
-### Auth (`/auth`)
-
-| Метод | Эндпоинт | Описание | Доступ |
-|-------|----------|----------|--------|
-| POST | `/auth/register` | Регистрация пользователя (роль `User` по умолчанию, можно передать `Admin`). 204 No Content / 400 | Анонимно |
-| POST | `/auth/login` | Вход по логину и паролю, возвращает JWT-токен. 200 OK / 400 | Анонимно |
-
-### Модель Event
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `Id` | `Guid` | Уникальный идентификатор |
-| `Title` | `string` | Название |
-| `Description` | `string?` | Описание (необязательно) |
-| `StartAt` | `DateTime` | Дата и время начала (UTC) |
-| `EndAt` | `DateTime` | Дата и время окончания (UTC) |
-| `TotalSeats` | `int` | Общее количество мест |
-| `AvailableSeats` | `int` | Свободных мест на данный момент |
-
-### Модель Booking
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `Id` | `Guid` | Уникальный идентификатор |
-| `EventId` | `Guid` | Идентификатор события |
-| `Status` | `BookingStatus` | Текущий статус |
-| `CreatedAt` | `DateTime` | Дата и время создания (UTC) |
-| `ProcessedAt` | `DateTime?` | Дата и время обработки |
-
-Статусы: `Pending` → `Confirmed` | `Rejected`
-
-### Защита от овербукинга
-
-`BookingService` использует `SemaphoreSlim(1,1)` для сериализации запросов на бронирование. Каждый запрос атомарно проверяет места (`TryReserveSeats()`), сохраняет бронь и событие, затем отпускает семафор. При сбое подтверждения броня переводится в `Rejected`, а место восстанавливается (`ReleaseSeats()`).
-
-### Фоновая обработка
-
-После создания брони сообщение попадает в очередь. `BookingConfirmationBackgroundService` в бесконечном цикле читает очередь, эмулирует обращение к внешней билетной системе и подтверждает бронь. При ошибке — компенсация (Reject + ReleaseSeats).
-
-## Аутентификация и авторизация
-
-Приложение использует JWT Bearer-токены. Пользователь получает токен через `POST /auth/login` и далее передаёт его в заголовке `Authorization: Bearer <token>`.
-
-### Ролевая модель
-
-Сущность `User` содержит поля `Login`, `PasswordHash` (хеш пароля, SHA-256) и `Role`:
-- `User` (0) — обычный пользователь, назначается по умолчанию при регистрации;
-- `Admin` (1) — администратор.
-
-### Разграничение прав
-
-| Действие | Эндпоинт | User | Admin |
-|----------|----------|------|-------|
-| Регистрация / вход | `/auth/register`, `/auth/login` | ✅ (анонимно) | ✅ (анонимно) |
-| Просмотр событий | `GET /events`, `GET /events/{id}` | ✅ | ✅ |
-| Бронирование | `POST /events/{id}/book` | ✅ | ✅ |
-| Просмотр брони | `GET /bookings/{id}` | ✅ | ✅ |
-| Отмена брони | `DELETE /bookings/{id}` | ✅ только **свою** | ✅ любую |
-| Создание/изменение/удаление событий | `POST/PUT/DELETE /events` | ❌ (403) | ✅ |
-
-Правило «свою бронь может отменить любой пользователь, чужую — только администратор» инкапсулировано в доменном методе `Booking.CanCancel(User)` и покрыто юнит-тестами. При нарушении прав возвращается **403 Forbidden**; при отсутствии токена — **401 Unauthorized**.
-
-Отсутствие или невалидный токен:
-- эндпоинты `/auth/*` — доступны без токена;
-- защищённые эндпоинты без токена — **401 Unauthorized**;
-- эндпоинты, требующие роль `Admin`, для обычного пользователя — **403 Forbidden**.
-
-### Получение JWT-токена через Swagger
-
-1. Запустите приложение (`dotnet run --project TicketNest.Api`) и откройте Swagger UI: `http://localhost:5000/swagger` (или `https://localhost:5001/swagger`).
-2. Выполните `POST /auth/login`, передав в теле логин и пароль:
-   ```json
-   {
-     "login": "alice",
-     "password": "secret"
-   }
-   ```
-   В ответе (`200 OK`) вернётся JWT-токен:
-   ```json
-   { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
-   ```
-   > Если пользователя ещё нет — сначала зарегистрируйте его через `POST /auth/register` (укажите `"role": 1`, чтобы создать администратора).
-3. В верхней правой части Swagger UI нажмите кнопку **Authorize** 🔒.
-4. В поле ввода укажите токен в формате `Bearer <token>` (например, `Bearer eyJhbGciOi...`) и нажмите **Authorize**, затем **Close**.
-5. Теперь все защищённые запросы из Swagger UI автоматически отправляются с заголовком `Authorization: Bearer <token>`.
-
-### Настройка JWT
-
-Параметры токенов задаются в секции `Jwt` файла `TicketNest.Api/appsettings.json`:
-
-```json
-{
-  "Jwt": {
-    "Secret": "replace-with-a-long-random-secret-key-32bytes-minimum",
-    "Issuer": "TicketNest",
-    "Audience": "TicketNest.Api",
-    "LifetimeMinutes": 60
-  }
-}
-```
-
-- `Secret` — секретный ключ для подписи токена (HS256). Должен быть достаточно длинным (рекомендуется ≥ 32 байт / 256 бит) и содержать криптографически стойкий случайный набор символов.
-- `Issuer` / `Audience` — издатель и аудитория токена, проверяются при валидации.
-- `LifetimeMinutes` — время жизни токена.
-
-> ⚠️ **Продакшн:** никогда не используйте значение `Secret` по умолчанию из репозитория. Сгенерируйте сильный секрет (например, `openssl rand -base64 48`) и передавайте его через переменные окружения или секреты CI/CD, а не коммитьте в `appsettings.json`. Для реальных сценариев рассмотрите асимметричные ключи (RS256) и хранение секретов в HashiCorp Vault / Azure Key Vault / AWS Secrets Manager.
+Сервисы **не вызывают друг друга напрямую по HTTP** — вся межсервисная коммуникация идёт через Kafka.
 
 ## Архитектура
 
-```
-TicketNest/
-├── TicketNest.Api                     # Presentation
-│   ├── Controllers/V1/                # Тонкие контроллеры
-│   ├── Models/V1/                     # DTO (запросы/ответы)
-│   ├── Mappers/                       # Domain → DTO
-│   ├── Middlewares/                   # Exception handling
-│   ├── Exceptions/                    # API-исключения
-│   ├── Startup.cs                     # Composition root (DI)
-│   └── Program.cs
-│
-├── TicketNest.Application             # Application
-│   ├── Services/
-│   │   ├── Events/                    # EventService (use cases)
-│   │   └── Bookings/                  # BookingService (use cases)
-│   └── BackgroundServices/            # Фоновые обработчики
-│
-├── TicketNest.Domain                  # Domain (core)
-│   ├── Models/
-│   │   ├── Events/Event.cs            # Aggregate root
-│   │   ├── Bookings/Booking.cs        # Aggregate root
-│   │   ├── Queue/QueueMessage.cs      # Value object
-│   │   └── Error.cs                   # Error model
-│   ├── Repositories/                  # Ports (interfaces)
-│   ├── Services/Bookings/             # Domain services
-│   ├── Filters/                       # Specification objects
-│   ├── Pagination/                    # Pagination primitives
-│   └── Constants/                     # Domain enums
-│
-├── TicketNest.DataAccess.Events       # Infrastructure (RDBMS)
-│   ├── Implementations/               # Repository implementations
-│   ├── Models/                        # EF Core persistence models
-│   ├── Mappers/                       # Domain ↔ Persistence
-│   ├── DbContext/                     # EventsDbContext
-│   └── Migrations/                    # EF Core migrations
-│
-├── TicketNest.DataAccess.Queue        # Infrastructure (queue)
-│   └── Implementations/               # In-memory queue
-│
-├── TicketNest.Shared                  # Shared kernel
-│   ├── Guard/                         # Guard clauses
-│   └── Objects/                       # Result pattern
-│
-├── TicketNest.UnitTests               # NUnit
-│   └── ...
-│
-└── TicketNest.IntegrationTests        # xUnit + Testcontainers
-    └── ...
-```
-
-### Направление зависимостей
+Каждый сервис разделён на слои чистой архитектуры:
 
 ```
-Shared → Domain → Application ← Infrastructure
-                        ↑            |
-                        └── Api ─────┘
+TicketNest.<Service>.Api        # Presentation — контроллеры, DTO, middleware, Swagger, Startup
+TicketNest.Application.<Service> # Application — сценарии использования, фоновые сервисы
+TicketNest.Domain.<Service>      # Domain — сущности, агрегаты, порты репозиториев, доменные сервисы
+TicketNest.DataAccess.<Service>  # Infrastructure — EF Core, реализации репозиториев, миграции
 ```
 
-- **Shared** — toolkit без зависимостей (Guard, Result pattern)
-- **Domain** — бизнес-правила, порты репозиториев, доменные службы. Зависит только от Shared
-- **Application** — use cases, оркестрация, фоновые задачи. Зависит от Domain
-- **Infrastructure** (DataAccess.\*) — реализация портов (EF Core, очереди). Зависит от Application
-- **Api** — composition root, DI, middleware, DTO. Зависит от Application и Infrastructure
+Общие/разделяемые проекты:
 
-### Ключевые принципы
+```
+TicketNest.Contracts   # Общий контракт: имена топиков (KafkaTopics) и DTO сообщений (Messages)
+TicketNest.Kafka       # Транспорт Kafka: producer/consumer gateway + создание топиков при старте
+TicketNest.Queues.*    # Адаптеры Kafka для конкретного сервиса (Bookings / Events)
+TicketNest.Shared      # Общий каркас: Result-паттерн, Guard, TokenUser
+TicketNest.Infrastructure # Реализация JWT (генерация/валидация), хеширование паролей
+```
 
-- Порты (интерфейсы репозиториев) объявлены в Domain — DDD-подход, где доменные службы используют абстракции для поддержания инвариантов
-- Контроллеры не содержат бизнес-логики, только маппинг и делегирование сервисам
-- Инфраструктурные детали (EF Core, ORM) не протекают в Application или Domain
-- DI-регистрация каждого слоя через extension-методы
+Направление зависимостей: `Shared → Domain → Application → Infrastructure → Api`, при этом `Contracts` и `Kafka` являются точками интеграции, не зависящими от бизнес-логики.
+
+## Обмен сообщениями через Kafka
+
+Общий контракт вынесен в `TicketNest.Contracts`:
+
+- `KafkaTopics.BookingTopic` — топик бронирований (`"BookingTopic"`)
+- `KafkaTopics.EventTopic` — топик событий (`"EventTopic"`)
+
+Поток бронирования (choreography):
+
+1. `Bookings.Api` сохраняет бронь в свою БД и поднимает доменное событие `BookingCreated`.
+2. Через **Outbox** (`TicketNest.DataAccess.Bookings`) событие сначала сохраняется в таблицу БД, а затем публикуется в Kafka (гарантия «сохранили → опубликовали»).
+3. `Bookings.Queues` публикует `BookingCreatedMessage` в `BookingTopic`.
+4. `Events.Api` (`BookingCreatedBackgroundService`) потребляет `BookingTopic`, резервирует места (`EventReserveService.Reserve` уменьшает `AvailableSeats`) и публикует `BookingApprovedMessage`/`BookingRejectedMessage` в `EventTopic`.
+5. `Bookings.Api` (`BookingConfirmationBackgroundService`) потребляет `EventTopic` и подтверждает/отклоняет бронь.
+
+Для отмены публикуется `BookingCancelledMessage` (места восстанавливаются).
+
+### Создание топиков при старте
+
+`TicketNest.Kafka.KafkaTopicInitializer` при запуске каждого Kafka-сервиса через `AdminClient` создаёт топики `BookingTopic` и `EventTopic`, если они ещё не существуют. Система работает «из коробки» даже на пустом брокере.
+
+## Аутентификация и авторизация (JWT)
+
+- Сервис **Auth** выпускает JWT (HS256) через `TicketNest.Infrastructure.JwtTokenGenerator`.
+- Сервисы **Events** и **Bookings** валидируют тот же токен, используя **одинаковые** `Jwt:Secret`, `Jwt:Issuer`, `Jwt:Audience` (общий секрет/издатель/аудитория).
+- Эндпоинты управления событиями (`POST/PUT/DELETE /events`) доступны только роли `Admin` (`[Authorize(Roles = "Admin")]`) — возвращается **403** для остальных.
+- Эндпоинты бронирований требуют аутентификации (`[Authorize]`) — **401** без токена.
+- Анонимны только `POST /auth/register` и `POST /auth/login`.
+
+Роли: `User` (0) — по умолчанию, `Admin` (1).
 
 ## Требования
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- **PostgreSQL 14+** для запуска приложения
-- **Docker** для интеграционных тестов
+- **PostgreSQL 14+** (отдельная БД для каждого сервиса)
+- **Kafka** (для межсервисного обмена)
+- **Docker** (для запуска в контейнерах / интеграционных тестов)
 
-## Установка и запуск
+## Запуск локально
 
-1. Настройте строку подключения в `TicketNest.Api/appsettings.json`:
+1. Поднимите PostgreSQL (3 БД: `auth`, `events`, `bookings`) и Kafka.
+2. В `appsettings.json` каждого сервиса задайте:
 
 ```json
 {
   "ConnectionStrings": {
-    "EventsDbConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+    "AuthDbConnection": "Host=localhost;Port=5432;Database=auth;Username=postgres;Password=postgres",
+    "EventsDbConnection": "Host=localhost;Port=5432;Database=events;Username=postgres;Password=postgres"
+  },
+  "Jwt": {
+    "Secret": "замените-на-длинный-случайный-секрет-32-байта-минимум",
+    "Issuer": "TicketNest",
+    "Audience": "TicketNest.Api",
+    "LifetimeMinutes": 60
+  },
+  "Kafka": {
+    "BaseUrl": "localhost:9092",
+    "Login": "",
+    "Password": ""
   }
 }
 ```
 
-2. Запустите:
+> Для Auth используется ключ `AuthDbConnection`, для Events и Bookings — `EventsDbConnection` (он указывает на соответствующую БД сервиса).
+
+3. Запустите сервисы (каждый в своём терминале):
 
 ```bash
-dotnet restore
-dotnet run --project TicketNest.Api
+dotnet run --project TicketNest.Auth.Api
+dotnet run --project TicketNest.Events.Api
+dotnet run --project TicketNest.Bookings.Api
 ```
 
-Схема БД создаётся автоматически через EF Core EnsureCreated.
+Схемы БД создаются/обновляются через EF Core migrations при старте (`app.Services.RunMigrations()`). Топики Kafka создаются при старте автоматически.
 
-После запуска Swagger UI доступен по адресу `http://localhost:5000/swagger` (или `https://localhost:5001/swagger`). Инструкция по авторизации в Swagger — в разделе [Аутентификация и авторизация](#аутентификация-и-авторизация).
+4. Swagger UI каждого сервиса:
+   - Auth: `http://localhost:5001/swagger` (или `https://localhost:5001/swagger`)
+   - Events: `http://localhost:5002/swagger`
+   - Bookings: `http://localhost:5003/swagger`
+
+### Авторизация в Swagger
+
+1. Выполните `POST /auth/login` (или `POST /auth/register` с `"role": 1` для админа).
+2. Нажмите **Authorize** в Swagger UI и введите `Bearer <token>`.
+
+## Запуск в Docker
+
+Для каждого сервиса подготовлен многоступенчатый `Dockerfile` (`Dockerfile.Auth`, `Dockerfile.Events`, `Dockerfile.Bookings`), а `docker-compose.yml` поднимает всю инфраструктуру:
+
+- 3 экземпляра PostgreSQL (`postgres-auth`, `postgres-events`, `postgres-bookings`);
+- Kafka (`bitnami/kafka`, включено авто-создание топиков как запасной вариант);
+- 3 сервиса, получающих строки подключения и адрес Kafka через переменные окружения.
+
+```bash
+docker compose up --build
+```
+
+Сервисы будут доступны на портах `5001` (auth), `5002` (events), `5003` (bookings). Переменные окружения (`ConnectionStrings__*`, `Kafka__*`) переопределяют значения из `appsettings.json`.
+
+## Структура проектов
+
+```
+TicketNest/
+├── TicketNest.Auth.Api / .Application.Auth / .Domain.Auth / .DataAccess.Auth
+├── TicketNest.Events.Api / .Application.Events / .Domain.Events / .DataAccess.Events / .Queues.Events
+├── TicketNest.Bookings.Api / .Application.Bookings / .Domain.Bookings / .DataAccess.Bookings / .Queues.Bookings
+├── TicketNest.Contracts        # общий Kafka-контракт (топики + сообщения)
+├── TicketNest.Kafka            # транспорт Kafka + создание топиков
+├── TicketNest.Shared           # Result-паттерн, Guard, TokenUser
+├── TicketNest.Infrastructure   # JWT (генерация/валидация), хеширование
+├── TicketNest.UnitTests / TicketNest.IntegrationTests
+├── Dockerfile.Auth / Dockerfile.Events / Dockerfile.Bookings
+└── docker-compose.yml
+```
 
 ## Тесты
 
-### Unit-тесты
-
 ```bash
-dotnet test TicketNest.UnitTests
+dotnet test TicketNest.UnitTests        # юнит-тесты (NUnit)
+dotnet test TicketNest.IntegrationTests  # интеграционные тесты (xUnit + Testcontainers, требует Docker)
 ```
-
-Изолированы через EF Core InMemory и NSubstitute. PostgreSQL не требуется. 133 теста.
-
-### Интеграционные тесты
-
-```bash
-dotnet test TicketNest.IntegrationTests
-```
-
-Требуют **Docker**. Testcontainers автоматически поднимает PostgreSQL-контейнер, создаёт схему и сбрасывает данные между тестами. 19 тестов.
-
-### CI
-
-GitHub Actions (`BuildBackend.yml`): сборка → unit-тесты + integration-тесты (параллельно).

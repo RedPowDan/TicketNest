@@ -6,10 +6,6 @@ namespace TicketNest.DataAccess.Events.DbContext;
 internal sealed class EventsDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     public DbSet<PersistenceEvent> Events { get; set; } = null!;
-    
-    public DbSet<PersistenceBooking> Bookings { get; set; } = null!;
-
-    public DbSet<PersistenceUser> Users { get; set; } = null!;
 
     public EventsDbContext(DbContextOptions<EventsDbContext> options) : base(options)
     {

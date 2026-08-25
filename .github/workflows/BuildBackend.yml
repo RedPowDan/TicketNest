@@ -52,7 +52,11 @@ jobs:
           path: .
 
       - name: Run Unit Tests
-        run: dotnet test TicketNest.UnitTests/TicketNest.UnitTests.csproj --configuration Release
+        run: |
+          dotnet test TicketNest.Auth.Tests/TicketNest.Auth.Tests.csproj --configuration Release
+          dotnet test TicketNest.Events.Tests/TicketNest.Events.Tests.csproj --configuration Release
+          dotnet test TicketNest.Bookings.Tests/TicketNest.Bookings.Tests.csproj --configuration Release
+          dotnet test TicketNest.Shared.Tests/TicketNest.Shared.Tests.csproj --configuration Release
 
   integration-tests:
     needs: build
@@ -73,4 +77,6 @@ jobs:
           path: .
 
       - name: Run Integration Tests
-        run: dotnet test TicketNest.IntegrationTests/TicketNest.IntegrationTests.csproj --configuration Release
+        run: |
+          dotnet test TicketNest.Events.IntegrationTests/TicketNest.Events.IntegrationTests.csproj --configuration Release
+          dotnet test TicketNest.Kafka.IntegrationTests/TicketNest.Kafka.IntegrationTests.csproj --configuration Release

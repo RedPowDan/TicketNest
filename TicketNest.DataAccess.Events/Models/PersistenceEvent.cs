@@ -15,6 +15,4 @@ internal sealed class PersistenceEvent
     public int TotalSeats { get; set; }
 
     public int AvailableSeats { get; set; }
-
-    public List<PersistenceBooking> Bookings { get; set; } = null!;
 }

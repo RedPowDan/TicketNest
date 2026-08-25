@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+      <ProjectReference Include="..\TicketNest.Domain.Bookings\TicketNest.Domain.Bookings.csproj" />
+      <ProjectReference Include="..\TicketNest.Kafka\TicketNest.Kafka.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>      <InternalsVisibleTo Include="TicketNest.Auth.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Events.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Bookings.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Shared.Tests" />
+      <InternalsVisibleTo Include="TicketNest.Events.IntegrationTests" />
+      <InternalsVisibleTo Include="TicketNest.Kafka.IntegrationTests" />
+    </ItemGroup>
+
+</Project>

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using TicketNest.DataAccess.Events.DbContext;
 using TicketNest.DataAccess.Events.Implementations;
-using TicketNest.Domain.Repositories;
+using TicketNest.Domain.Events.Repositories;
 
 namespace TicketNest.DataAccess.Events;
 
@@ -13,8 +13,6 @@ public static class ServiceCollectionExtension
         return services
                 .AddDbContext<EventsDbContext>(options => options.UseNpgsql(connectionString))
                 .AddScoped<IEventsRepository, EventRepository>()
-                .AddScoped<IBookingRepository, BookingRepository>()
-                .AddScoped<IUserRepository, UserRepository>()
             ;
     }
 }
