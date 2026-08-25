@@ -64,6 +64,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Queues.Bookings"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Queues.Events", "TicketNest.Queues.Events\TicketNest.Queues.Events.csproj", "{0D1FC730-9235-41A4-B50A-98977383138A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{26245E4C-3B0E-4C58-9D18-CAD5C940FD2C}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+		.dockerignore = .dockerignore
+		Dockerfile.Auth = Dockerfile.Auth
+		Dockerfile.Bookings = Dockerfile.Bookings
+		Dockerfile.Events = Dockerfile.Events
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
