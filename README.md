@@ -125,7 +125,7 @@ dotnet run --project TicketNest.Bookings.Api
 Для каждого сервиса подготовлен многоступенчатый `Dockerfile` (`Dockerfile.Auth`, `Dockerfile.Events`, `Dockerfile.Bookings`), а `docker-compose.yml` поднимает всю инфраструктуру:
 
 - 3 экземпляра PostgreSQL (`postgres-auth`, `postgres-events`, `postgres-bookings`);
-- Kafka (`bitnami/kafka`, включено авто-создание топиков как запасной вариант);
+- Kafka (`confluentinc/cp-kafka` в режиме KRaft, включено авто-создание топиков как запасной вариант);
 - 3 сервиса, получающих строки подключения и адрес Kafka через переменные окружения.
 
 ```bash
