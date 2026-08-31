@@ -61,6 +61,15 @@ services:
       timeout: 10s
       retries: 10
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: eventapi-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   auth:
     build:
       context: .
@@ -85,11 +94,15 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       ConnectionStrings__EventsDbConnection: "Host=postgres-events;Port=5432;Database=events;Username=postgres;Password=postgres"
       Kafka__BaseUrl: "kafka:9092"
       Kafka__Login: ""
       Kafka__Password: ""
+      Cache__ConnectionString: "redis:6379"
+      Cache__IsEnabled: "true"
     ports:
       - "5002:8080"
 

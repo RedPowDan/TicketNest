@@ -1,9 +1,11 @@
 ﻿using TicketNest.Application.Events;
+using TicketNest.Application.Events.Cache;
 using TicketNest.Contracts.Kafka;
 using TicketNest.DataAccess.Events;
 using TicketNest.Events.Api.DI;
 using TicketNest.Events.Api.Infrastructure;
 using TicketNest.Events.Api.Middlewares;
+using TicketNest.Infrastructure.Events;
 using TicketNest.Kafka;
 using TicketNest.Queues.Events;
 
@@ -28,6 +30,17 @@ public class Startup
         services.AddSwagger();
         services.AddApplicationServices();
         services.AddEventDataAccess(Configuration.GetConnectionString("EventsDbConnection")!);
+
+        services.Configure<CacheSettings>(Configuration.GetSection(CacheSettings.SectionName));
+        var cacheSettings = Configuration.GetSection(CacheSettings.SectionName).Get<CacheSettings>() ?? new CacheSettings();
+        if (cacheSettings.IsEnabled)
+        {
+            services.AddRedisCache();
+        }
+        else
+        {
+            services.AddSingleton<ICacheService, NoOpCacheService>();
+        }
         services.AddScoped<ExceptionHandlingMiddleware>();
         services.AddHttpContextAccessor();
         services.AddQueues(Configuration);

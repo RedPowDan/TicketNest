@@ -81,4 +81,17 @@ internal sealed class EventRepository(EventsDbContext dbContext) : IEventsReposi
         await dbContext.SaveChangesAsync(ct);
         return true;
     }
+
+    public async Task<IReadOnlyList<Event>> GetTop10ByPopularity(CancellationToken ct = default)
+    {
+        var topEvents = await dbContext
+            .Events
+            .AsNoTracking()
+            .Where(e => e.TotalSeats > 0)
+            .OrderByDescending(e => (double)(e.TotalSeats - e.AvailableSeats) / e.TotalSeats)
+            .Take(10)
+            .ToListAsync(cancellationToken: ct);
+
+        return topEvents.Select(EventMapper.ToDomain).ToList();
+    }
 }
