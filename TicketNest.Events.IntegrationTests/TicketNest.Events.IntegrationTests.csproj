@@ -17,6 +17,7 @@
         <PackageReference Include="FluentAssertions" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" />
         <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers.Redis" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,6 +34,8 @@
         <ProjectReference Include="..\TicketNest.DataAccess.Bookings\TicketNest.DataAccess.Bookings.csproj" />
         <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
         <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+        <ProjectReference Include="..\TicketNest.Application.Events\TicketNest.Application.Events.csproj" />
+        <ProjectReference Include="..\TicketNest.Infrastructure.Events\TicketNest.Infrastructure.Events.csproj" />
     </ItemGroup>
 
 </Project>

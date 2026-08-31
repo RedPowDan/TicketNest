@@ -18,6 +18,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="TicketNest.Events.Tests" />
+        <InternalsVisibleTo Include="TicketNest.Events.IntegrationTests" />
     </ItemGroup>
 
 </Project>
