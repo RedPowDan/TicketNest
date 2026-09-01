@@ -38,6 +38,7 @@ internal sealed class BookingCancelledBackgroundService : BackgroundService
         if (result.IsFailure)
         {
             _logger.LogError("Произошла ошибка при обработке сообщения об отмене бронирования.: {@Message}", message);
+            return;
         }
 
         await cacheService.RemoveAsync(CacheKeys.EventById(message.EventId), CancellationToken.None);
