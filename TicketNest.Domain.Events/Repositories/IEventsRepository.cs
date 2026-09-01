@@ -14,4 +14,6 @@ public interface IEventsRepository
     Task<PaginatedResult<Event>> GetAll(EventsFilter filter, PaginationRequest paginationRequest, CancellationToken ct = default);
 
     Task<bool> Remove(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Event>> GetTop10ByPopularity(CancellationToken ct = default);
 }

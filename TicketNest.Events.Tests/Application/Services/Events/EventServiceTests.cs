@@ -1,4 +1,7 @@
-﻿using NSubstitute;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
+using TicketNest.Application.Events.Cache;
 using TicketNest.Application.Events.Services.Events;
 using TicketNest.Domain.Events.Constants;
 using TicketNest.Domain.Events.Filters;
@@ -13,13 +16,16 @@ namespace TicketNest.Events.Tests.Application.Services.Events;
 public class EventServiceTests
 {
     private IEventsRepository _eventsRepository = null!;
+    private ICacheService _cacheService = null!;
     private EventService _eventService = null!;
 
     [SetUp]
     public void SetUp()
     {
         _eventsRepository = Substitute.For<IEventsRepository>();
-        _eventService = new EventService(_eventsRepository);
+        _cacheService = Substitute.For<ICacheService>();
+        var logger = NullLogger<EventService>.Instance;
+        _eventService = new EventService(_eventsRepository, _cacheService, logger);
     }
 
     #region Success Scenarios
@@ -426,6 +432,100 @@ public class EventServiceTests
         result.Should().NotBeNull();
         result.Items.Should().BeEmpty();
         result.TotalCount.Should().Be(0);
+    }
+
+    #endregion
+
+    #region Cache Scenarios
+
+    [Test]
+    public async Task Get_Should_ReturnCachedEvent_When_CacheHit()
+    {
+        var eventId = Guid.NewGuid();
+        var cachedEvent = CreateValidEvent(eventId);
+
+        _cacheService.GetAsync<Event>(Arg.Is($"event:{eventId}"), Arg.Any<CancellationToken>())
+            .Returns(cachedEvent);
+
+        var result = await _eventService.Get(eventId);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(eventId);
+
+        await _eventsRepository.DidNotReceive().Get(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Get_Should_QueryRepositoryAndCache_When_CacheMiss()
+    {
+        var eventId = Guid.NewGuid();
+        var dbEvent = CreateValidEvent(eventId);
+
+        _cacheService.GetAsync<Event>(Arg.Is($"event:{eventId}"), Arg.Any<CancellationToken>())
+            .Returns((Event?)null);
+
+        _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
+            .Returns(dbEvent);
+
+        var result = await _eventService.Get(eventId);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(eventId);
+
+        await _eventsRepository.Received(1).Get(eventId, Arg.Any<CancellationToken>());
+        await _cacheService.Received(1).SetAsync(
+            Arg.Is($"event:{eventId}"),
+            Arg.Any<Event>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Change_Should_InvalidateCache_When_EventUpdated()
+    {
+        var eventId = Guid.NewGuid();
+        var existingEvent = CreateValidEvent(eventId);
+
+        _eventsRepository.Get(eventId, Arg.Any<CancellationToken>())
+            .Returns(existingEvent);
+
+        _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        await _eventService.Change(eventId, "Updated Title", "Updated Desc", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6));
+
+        await _cacheService.Received(1).RemoveAsync(Arg.Is($"event:{eventId}"), Arg.Any<CancellationToken>());
+        await _cacheService.Received(1).RemoveAsync(Arg.Is(CacheKeys.TopEvents), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Delete_Should_InvalidateCache_When_EventDeleted()
+    {
+        var eventId = Guid.NewGuid();
+
+        _eventsRepository.Remove(eventId, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        await _eventService.Delete(eventId);
+
+        await _cacheService.Received(1).RemoveAsync(Arg.Is($"event:{eventId}"), Arg.Any<CancellationToken>());
+        await _cacheService.Received(1).RemoveAsync(Arg.Is(CacheKeys.TopEvents), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Should_InvalidateTopCache_When_EventCreated()
+    {
+        const string title = "New Event";
+        const string description = "Description";
+        var startAt = DateTime.UtcNow.AddDays(1);
+        var endAt = DateTime.UtcNow.AddDays(2);
+
+        _eventsRepository.Save(Arg.Any<Event>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        await _eventService.Create(title, description, startAt, endAt, totalSeats: 50);
+
+        await _cacheService.Received(1).RemoveAsync(Arg.Is(CacheKeys.TopEvents), Arg.Any<CancellationToken>());
     }
 
     #endregion

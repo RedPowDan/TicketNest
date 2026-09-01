@@ -13,7 +13,7 @@ namespace TicketNest.Events.Api.Controllers.V1;
 [ApiController]
 [Route("[controller]")]
 [ProducesResponseType(typeof(ResultModel<EmptyResultModel>), StatusCodes.Status500InternalServerError)]
-public class EventsController(IEventService eventService) : BaseApiController
+public class EventsController(IEventService eventService, IEventTopService eventTopService) : BaseApiController
 {
     /// <summary>
     /// Получить список всех событий
@@ -56,6 +56,19 @@ public class EventsController(IEventService eventService) : BaseApiController
         }
 
         return Success(EventResponseMapper.Map(@event));
+    }
+
+    /// <summary>
+    /// Получить топ-10 самых популярных событий
+    /// </summary>
+    [HttpGet("top")]
+    [ProducesResponseType(typeof(ResultModel<IReadOnlyList<EventResponse>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ResultModel<IReadOnlyList<EventResponse>>>> GetTop10(CancellationToken ct)
+    {
+        var topEvents = await eventTopService.GetTop10(ct);
+        var response = topEvents.Select(EventResponseMapper.Map).ToList();
+
+        return Success<IReadOnlyList<EventResponse>>(response);
     }
 
     /// <summary>

@@ -33,6 +33,7 @@
         <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
         <ProjectReference Include="..\TicketNest.Shared\TicketNest.Shared.csproj" />
         <ProjectReference Include="..\TicketNest.Contracts\TicketNest.Contracts.csproj" />
+        <ProjectReference Include="..\TicketNest.Infrastructure.Events\TicketNest.Infrastructure.Events.csproj" />
     </ItemGroup>
 
 </Project>

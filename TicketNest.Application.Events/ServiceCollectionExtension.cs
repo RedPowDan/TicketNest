@@ -11,6 +11,7 @@ public static class ServiceCollectionExtension
     {
         return services
                 .AddScoped<IEventService, EventService>()
+                .AddScoped<IEventTopService, EventTopService>()
                 .AddScoped<IEventReserveService, EventReserveService>()
                 .AddScoped<IEventReleaseSeatsService, EventReleaseSeatsService>()
                 .AddHostedService<BookingCancelledBackgroundService>()

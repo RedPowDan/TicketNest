@@ -20,6 +20,7 @@
       <ProjectReference Include="..\TicketNest.Application.Events\TicketNest.Application.Events.csproj" />
       <ProjectReference Include="..\TicketNest.DataAccess.Events\TicketNest.DataAccess.Events.csproj" />
       <ProjectReference Include="..\TicketNest.Queues.Events\TicketNest.Queues.Events.csproj" />
+      <ProjectReference Include="..\TicketNest.Infrastructure.Events\TicketNest.Infrastructure.Events.csproj" />
     </ItemGroup>
 
 </Project>

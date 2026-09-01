@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TicketNest.Application.Events.Cache;
 using TicketNest.Application.Events.Services;
 using TicketNest.Contracts.Kafka.Messages;
 using TicketNest.Domain.Events.Services.Events;
@@ -31,12 +32,17 @@ internal sealed class BookingCancelledBackgroundService : BackgroundService
     {
         using var scope = _scopeFactory.CreateScope();
         var eventReleaseSeatsService = scope.ServiceProvider.GetRequiredService<IEventReleaseSeatsService>();
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
 
         var result = await eventReleaseSeatsService.ReleaseSeats(message.EventId, ct: ct);
         if (result.IsFailure)
         {
             _logger.LogError("Произошла ошибка при обработке сообщения об отмене бронирования.: {@Message}", message);
+            return;
         }
+
+        await cacheService.RemoveAsync(CacheKeys.EventById(message.EventId), CancellationToken.None);
+        await cacheService.RemoveAsync(CacheKeys.TopEvents, CancellationToken.None);
 
         _logger.LogInformation("Освобождено место для события {MessageEventId}. Бронь {MessageBookingId}", message.EventId, message.BookingId);
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TicketNest.Application.Events.Cache;
 using TicketNest.Application.Events.Services;
 using TicketNest.Contracts.Kafka.Messages;
 using TicketNest.Domain.Events.Services;
@@ -28,6 +29,7 @@ internal sealed class BookingCreatedBackgroundService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var eventReserveService = scope.ServiceProvider.GetRequiredService<IEventReserveService>();
         var eventsProducer = scope.ServiceProvider.GetRequiredService<IEventsProducer>();
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
 
         var result = await eventReserveService.Reserve(eventId: message.EventId, reserveDateTime: DateTime.UtcNow, ct);
         if (result.IsFailure)
@@ -39,6 +41,9 @@ internal sealed class BookingCreatedBackgroundService : BackgroundService
                 CancellationToken.None);
             return;
         }
+
+        await cacheService.RemoveAsync(CacheKeys.EventById(message.EventId), CancellationToken.None);
+        await cacheService.RemoveAsync(CacheKeys.TopEvents, CancellationToken.None);
 
         await eventsProducer.BookingApproved(
             bookingId: message.BookingId,
