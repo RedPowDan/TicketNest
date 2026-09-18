@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: users-service
+    static_configs:
+      - targets: ["auth:8080"]
+    metrics_path: /metrics
+
+  - job_name: events-service
+    static_configs:
+      - targets: ["events:8080"]
+    metrics_path: /metrics
+
+  - job_name: bookings-service
+    static_configs:
+      - targets: ["bookings:8080"]
+    metrics_path: /metrics

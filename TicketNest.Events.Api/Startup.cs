@@ -1,4 +1,7 @@
-﻿using TicketNest.Application.Events;
+﻿using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using TicketNest.Application.Events;
 using TicketNest.Application.Events.Cache;
 using TicketNest.Contracts.Kafka;
 using TicketNest.DataAccess.Events;
@@ -46,6 +49,17 @@ public class Startup
         services.AddQueues(Configuration);
         services.AddJwt(Configuration);
         services.AddKafkaInfrastructure();
+        services.AddOpenTelemetry()
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddOtlpExporter(o => o.Endpoint = new Uri(Configuration["Otlp:Endpoint"]!)))
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddPrometheusExporter())
+            .ConfigureResource(r => r.AddService(serviceName: "events-service"));
 
         services.AddAuthorization();
 
@@ -84,5 +98,6 @@ public class Startup
             KafkaTopics.EventTopic);
 
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.MapPrometheusScrapingEndpoint(); // доступен по /metrics 
     }
 }

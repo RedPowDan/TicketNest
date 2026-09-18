@@ -65,6 +65,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{26245E
 		Dockerfile.Auth = Dockerfile.Auth
 		Dockerfile.Bookings = Dockerfile.Bookings
 		Dockerfile.Events = Dockerfile.Events
+		prometheus.yml = prometheus.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketNest.Auth.Tests", "TicketNest.Auth.Tests\TicketNest.Auth.Tests.csproj", "{338A8135-0F38-4C0C-871D-556EAB58A78F}"
