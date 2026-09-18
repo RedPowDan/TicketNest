@@ -22,7 +22,7 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
         <PackageReference Include="Serilog.AspNetCore" />
         <PackageReference Include="Serilog.Formatting.Compact" />
-        <PackageReference Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" />
+        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
