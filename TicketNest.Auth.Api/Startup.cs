@@ -1,4 +1,7 @@
-﻿using TicketNest.Application.Auth;
+﻿using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using TicketNest.Application.Auth;
 using TicketNest.Auth.Api.Infrastructure;
 using TicketNest.Auth.Api.Middlewares;
 using TicketNest.DataAccess.Auth;
@@ -30,6 +33,18 @@ public class Startup
         services.AddScoped<ExceptionHandlingMiddleware>();
         services.AddHttpContextAccessor();
         services.AddJwt(Configuration);
+        services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(serviceName: "users-service"))
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddOtlpExporter(o => o.Endpoint = new Uri(Configuration["Otlp:Endpoint"]!)))
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddPrometheusExporter())
+            ;
 
         services.AddAuthorization();
 
@@ -60,6 +75,9 @@ public class Startup
 
         app.Services.RunMigrations();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(endpoints => {
+            endpoints.MapControllers();
+            endpoints.MapPrometheusScrapingEndpoint();  // доступен по /metrics
+        });
     }
 }
