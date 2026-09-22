@@ -134,6 +134,78 @@ docker compose up --build
 
 Сервисы будут доступны на портах `5001` (auth), `5002` (events), `5003` (bookings). Переменные окружения (`ConnectionStrings__*`, `Kafka__*`) переопределяют значения из `appsettings.json`.
 
+## Наблюдаемость (OpenTelemetry, Prometheus, Jaeger, Grafana)
+
+В сервисы добавлен стек наблюдаемости: **OpenTelemetry SDK** собирает трейсы и метрики, **Prometheus** хранит метрики, **Jaeger** — трейсы, **Grafana** визуализирует метрики, а **Serilog** приводит логи к структурированному JSON-формату.
+
+### Что добавлено
+
+| Компонент | Назначение |
+|-----------|------------|
+| OpenTelemetry SDK | Автоматическая инструментация входящих/исходящих HTTP-запросов и запросов EF Core, сбор метрик ASP.NET Core и рантайма .NET |
+| Prometheus | Сбор и хранение метрик (скрейпинг `/metrics` каждого сервиса) |
+| Jaeger | Приём и хранение трейсов по OTLP (gRPC) |
+| Grafana | Дашборд с latency, throughput и error rate |
+| Serilog + `CompactJsonFormatter` | Логи в структурированном JSON |
+
+Пакеты OpenTelemetry и Serilog подключены в Presentation-проекте каждого сервиса (`TicketNest.Auth.Api`, `TicketNest.Events.Api`, `TicketNest.Bookings.Api`).
+
+### Сигналы
+
+- **Трейсы** — `AddAspNetCoreInstrumentation()`, `AddHttpClientInstrumentation()`, `AddEntityFrameworkCoreInstrumentation()`, экспорт в Jaeger через OTLP (`AddOtlpExporter`).
+- **Метрики** — `AddAspNetCoreInstrumentation()`, `AddRuntimeInstrumentation()`, экспорт через Prometheus (`AddPrometheusExporter`).
+- **Логи** — Serilog с `CompactJsonFormatter`: каждая строка лога — полноценный JSON-объект с уровнем, временной меткой, источником и сообщением.
+
+### Имена сервисов и адрес OTLP
+
+Имя ресурса задаётся в `Startup` каждого сервиса (`.ConfigureResource(r => r.AddService(...))`):
+
+| Сервис | Имя в Jaeger / метках Prometheus |
+|--------|----------------------------------|
+| `TicketNest.Auth.Api` | `users-service` |
+| `TicketNest.Events.Api` | `events-service` |
+| `TicketNest.Bookings.Api` | `bookings-service` |
+
+Адрес OTLP задаётся в `appsettings.json` (`Otlp:Endpoint`, по умолчанию `http://localhost:4317`) и переопределяется переменной окружения `Otlp__Endpoint` при запуске в Docker (`http://jaeger:4317`).
+
+### Порты
+
+| Инструмент | URL / порт | Назначение |
+|------------|-----------|------------|
+| Prometheus | http://localhost:9090 | UI, статус скрейпинга (Status → Targets) |
+| Jaeger | http://localhost:16686 | UI, поиск трейсов |
+| Jaeger OTLP | localhost:4317 | приём трейсов по gRPC |
+| Grafana | http://localhost:3000 | дашборд (логин `admin`, пароль `admin`) |
+| Метрики сервисов | `/metrics` | `5001` (auth), `5002` (events), `5003` (bookings) |
+
+### Запуск стека мониторинга
+
+```bash
+docker compose up --build
+```
+
+Поднимаются все сервисы и инфраструктура, включая контейнеры `prometheus`, `jaeger` и `grafana`. Конфигурация скрейпинга описана в `prometheus.yml`, а datasource и дашборд Grafana подключаются автоматически через provisioning (`grafana/provisioning`, `grafana/dashboards`).
+
+Проверка:
+
+1. **Метрики**: `curl http://localhost:5002/metrics` возвращает данные в формате Prometheus.
+2. **Prometheus**: http://localhost:9090/targets — все job'ы (`users-service`, `events-service`, `bookings-service`) в статусе **UP**.
+3. **Jaeger**: http://localhost:16686 — трейсы сервисов с HTTP-спанами (`GET Events` и т.п.) и SQL-спанами EF Core.
+4. **Grafana**: http://localhost:3000 — дашборд **TicketNest - Service Overview**.
+
+### Дашборд Grafana
+
+Дашборд `grafana/dashboards/ticketnest-overview.json` добавлен в репозиторий и загружается автоматически. Панели построены на метриках ASP.NET Core:
+
+| Панель | Метрика |
+|--------|---------|
+| HTTP latency (p50 / p95 / p99) | `http_server_request_duration_seconds_bucket` |
+| Throughput (RPS) | `http_server_request_duration_seconds_count` |
+| Error rate (HTTP 5xx) | `http_server_request_duration_seconds_count{http_response_status_code=~"5.."}` |
+| Active requests | `http_server_active_requests` |
+
+Источник данных — Prometheus (`http://prometheus:9090`), задаётся в `grafana/provisioning/datasources/prometheus.yml`.
+
 ## Структура проектов
 
 ```
@@ -147,6 +219,8 @@ TicketNest/
 ├── TicketNest.Infrastructure   # JWT (генерация/валидация), хеширование
 ├── TicketNest.UnitTests / TicketNest.IntegrationTests
 ├── Dockerfile.Auth / Dockerfile.Events / Dockerfile.Bookings
+├── prometheus.yml               # конфигурация скрейпинга метрик
+├── grafana/                     # provisioning + JSON дашборда
 └── docker-compose.yml
 ```
 
